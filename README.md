@@ -79,6 +79,14 @@ todas as ferramentas, aniversários e tempo de casa.
   (no ritmo / atenção / em risco), **projeção** de fechamento e gráfico realizado × ritmo ideal
 - Alerta de KRs sem check-in há mais de 14 dias; **duplicação de ciclo** partindo dos valores atuais
 
+### Escalas (`/escalas`)
+- Várias escalas (semanal, diária, quinzenal…) com ordem de rodízio ajustável
+- Geração automática que **pula quem está de férias/ausente** (integra com Ausências) e compensa
+  a pessoa no próximo turno; opção de apenas dias úteis (com feriados)
+- **Trocas** e **permutas** de turno com histórico; trocas e turnos manuais são preservados ao regerar
+- Alerta de **conflito** quando uma ausência é registrada depois da escala gerada
+- Quadro de **equilíbrio** (turnos e dias por pessoa vs. média) e exportação iCal
+
 ## Próximas ferramentas
 
 - **Férias e ausências** — calendário e conflitos de cobertura

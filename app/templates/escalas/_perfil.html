@@ -1,0 +1,3 @@
+{% if p.turnos %}<ul>{% for t in p.turnos %}<li><a href="/escalas/{{ t.escala_id }}">{{ t.escala.nome }}</a>: {{ t.inicio|data('%d/%m') }}{% if t.fim != t.inicio %}–{{ t.fim|data('%d/%m') }}{% endif %}
+  {% if t.origem == 'troca' %}<span class="tag alerta">troca</span>{% endif %}</li>{% endfor %}</ul>
+{% else %}<p class="suave">Nenhum turno programado.</p>{% endif %}

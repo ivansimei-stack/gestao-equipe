@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.database import Base, SessionLocal, criar_tabelas, engine  # noqa: E402
 from app.ferramentas.ausencias.models import Ausencia, RegraCobertura  # noqa: E402
 from app.ferramentas.equipe.models import Membro  # noqa: E402
+from app.ferramentas.escalas.models import Escala, Participante  # noqa: E402
 from app.ferramentas.okrs.models import Checkin, Ciclo, Objetivo, ResultadoChave  # noqa: E402
 from app.ferramentas.um_a_um.models import Acao, ConfigUmAUm, Reuniao, Topico  # noqa: E402
 
@@ -96,7 +97,8 @@ def criar(db):
     n_reunioes = criar_um_a_um(db, membros)
     n_krs = criar_okrs(db, membros)
     db.commit()
-    print(f"{len(membros)} membros, {len(a)} ausências, {n_reunioes} 1:1s e {n_krs} KRs criados.")
+    n_turnos = criar_escalas(db, membros)
+    print(f"{len(membros)} membros, {len(a)} ausências, {n_reunioes} 1:1s, {n_krs} KRs e {n_turnos} turnos criados.")
 
 
 ANOTACOES = [
@@ -214,6 +216,30 @@ def criar_okrs(db, membros):
             db.add(o)
     db.add_all([anterior, atual])
     return n
+
+
+def criar_escalas(db, membros):
+    from app.ferramentas.escalas import servico as esc
+    ana, bruno, camila, diego, elisa, felipe, gabi, henrique, isabela, joao = membros
+    plantao = Escala(nome="Plantão de fechamento", duracao_dias=7, pular_ausentes=True,
+                     descricao="Acionamento fora do horário durante o fechamento mensal. Contato pelo telefone cadastrado.")
+    for i, m in enumerate([bruno, camila, diego, ana]):
+        plantao.participantes.append(Participante(membro=m, ordem=i))
+    suporte = Escala(nome="Suporte ao usuário", duracao_dias=1, apenas_dias_uteis=True, pular_ausentes=True,
+                     descricao="Responsável pela fila de chamados do dia.")
+    for i, m in enumerate([henrique, isabela, joao]):
+        suporte.participantes.append(Participante(membro=m, ordem=i))
+    db.add_all([plantao, suporte])
+    db.commit()
+    ini = segunda(HOJE) - timedelta(days=56)
+    total = 0
+    for e, ate in ((plantao, segunda(HOJE) + timedelta(days=83)), (suporte, HOJE + timedelta(days=30))):
+        r = esc.gerar(db, e, ini if e is plantao else HOJE - timedelta(days=30), ate)
+        total += r["criados"]
+    futuros = [t for t in esc.turnos(db, plantao.id, de=HOJE) if t.inicio > HOJE]
+    if len(futuros) > 2:
+        esc.trocar_responsavel(db, futuros[1], ana.id, "Consulta médica")
+    return total
 
 
 if __name__ == "__main__":

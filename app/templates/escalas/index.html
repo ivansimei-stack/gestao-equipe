@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}Escalas · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<h1>Escalas e plantões</h1>
+<div class="grade">
+{% for c in cards %}
+  <a class="cartao escala-cartao {{ 'inativo' if not c.e.ativa }}" href="/escalas/{{ c.e.id }}">
+    <h3>{{ c.e.nome }} {% if not c.e.ativa %}<span class="tag">Inativa</span>{% endif %}</h3>
+    <p class="suave">{{ c.e.periodicidade }}{{ ' · dias úteis' if c.e.apenas_dias_uteis }} · {{ c.e.participantes|length }} pessoa(s)</p>
+    <div class="agora">
+      <span class="rotulo">De plantão agora</span>
+      <strong>{{ c.agora.membro.nome if c.agora else '—' }}</strong>
+      {% if c.agora %}<small class="suave">até {{ c.agora.fim|data('%d/%m') }}</small>{% endif %}
+    </div>
+    {% if c.proximos %}<p class="suave">Depois: {% for t in c.proximos %}{{ t.membro.primeiro_nome }} ({{ t.inicio|data('%d/%m') }}){{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
+    <p>{% if c.conflitos %}<span class="tag risco">{{ c.conflitos }} conflito(s) com ausências</span>{% endif %}
+       {% if c.ate %}<span class="tag info">gerada até {{ c.ate|data('%d/%m/%y') }}</span>{% elif c.e.ativa %}<span class="tag alerta">sem turnos futuros</span>{% endif %}</p>
+  </a>
+{% else %}<p class="suave">Nenhuma escala criada ainda.</p>{% endfor %}
+</div>
+
+<h2>Nova escala</h2>
+<form class="formulario" method="post" action="/escalas">
+  <label>Nome<input name="nome" required placeholder="Ex.: Plantão de sistemas"></label>
+  <label>Duração de cada turno
+    <select name="duracao_dias"><option value="7">Semanal (7 dias)</option><option value="1">Diária</option><option value="14">Quinzenal</option></select></label>
+  <label class="largo">Descrição<input name="descricao" placeholder="Responsabilidades, horários, contato de acionamento…"></label>
+  <label class="check"><input type="checkbox" name="pular_ausentes" value="1" checked> Pular quem estiver de férias/ausente</label>
+  <label class="check"><input type="checkbox" name="apenas_dias_uteis" value="1"> Apenas dias úteis (escala diária)</label>
+  <fieldset class="largo"><legend>Participantes (na ordem do rodízio — dá para reordenar depois)</legend>
+    <div class="grade-check">{% for m in membros %}<label class="check"><input type="checkbox" name="participantes" value="{{ m.id }}"> {{ m.nome }}</label>{% endfor %}</div>
+  </fieldset>
+  <div class="acoes largo"><button>Criar escala</button></div>
+</form>
+{% endblock %}

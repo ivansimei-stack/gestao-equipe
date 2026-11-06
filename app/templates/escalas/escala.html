@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block titulo %}{{ e.nome }} · Escalas{% endblock %}
+{% block conteudo %}
+<div class="topo">
+  <h1>{{ e.nome }} <small>{{ e.periodicidade }}{{ ' · dias úteis' if e.apenas_dias_uteis }}</small> {% if not e.ativa %}<span class="tag">Inativa</span>{% endif %}</h1>
+  <div class="acoes"><a class="botao sec" href="/escalas">← Escalas</a><a class="botao sec" href="/escalas/{{ e.id }}/escala.ics">Exportar iCal</a></div>
+</div>
+{% if e.descricao %}<p class="suave">{{ e.descricao }}</p>{% endif %}
+
+<div class="duas-colunas">
+  <section class="caixa destaque-plantao">
+    <span class="rotulo">De plantão agora</span>
+    <strong>{{ agora.membro.nome if agora else 'Ninguém' }}</strong>
+    {% if agora %}<span class="suave">{{ agora.inicio|data('%d/%m') }} a {{ agora.fim|data('%d/%m') }}{% if agora.membro.telefone %} · 📞 {{ agora.membro.telefone }}{% endif %}</span>{% endif %}
+  </section>
+  <section class="caixa">
+    <h3>Gerar turnos</h3>
+    <form method="post" action="/escalas/{{ e.id }}/gerar" class="linha">
+      <label>de <input type="date" name="de" value="{{ sugestao.de }}" required></label>
+      <label>até <input type="date" name="ate" value="{{ sugestao.ate }}" required></label>
+      <button>Gerar</button>
+      <label class="suave"><input type="checkbox" name="sobrescrever" value="1"> refazer também trocas/manuais</label>
+    </form>
+    <p class="suave">Turnos automáticos no período são refeitos; trocas e turnos manuais são preservados.{% if e.pular_ausentes %} Quem tiver ausência no turno é pulado e compensado no próximo turno disponível.{% endif %}</p>
+  </section>
+</div>
+
+{% if conflitos %}
+<section class="caixa alerta-caixa">
+  <h3>⚠ Conflitos com ausências</h3>
+  <ul>{% for t in futuros if t.id in conflitos %}<li>{{ t.inicio|data('%d/%m') }}–{{ t.fim|data('%d/%m') }}: <strong>{{ t.membro.nome }}</strong> —
+    {% for a in conflitos[t.id] %}<a href="/ausencias/{{ a.id }}">{{ a.tipo_nome|lower }} ({{ a.status_nome|lower }})</a>{{ ', ' if not loop.last }}{% endfor %}
+    · troque abaixo ou regere a escala.</li>{% endfor %}</ul>
+</section>{% endif %}
+
+<h2>Próximos turnos</h2>
+<table>
+  <thead><tr><th>Período</th><th>Responsável</th><th>Origem</th><th></th></tr></thead>
+  <tbody>
+  {% for t in futuros %}
+    <tr class="{{ 'linha-conflito' if t.id in conflitos }} {{ 'linha-hoje' if t == agora }}">
+      <td>{{ t.inicio|data('%d/%m/%y') }}{% if t.fim != t.inicio %} – {{ t.fim|data('%d/%m/%y') }}{% endif %} <small class="suave">{{ DIAS_SEMANA[t.inicio.weekday()] }}</small></td>
+      <td><a href="/equipe/{{ t.membro_id }}">{{ t.membro.nome }}</a>{% if t.membro_original %} <small class="suave">(no lugar de {{ t.membro_original.primeiro_nome }})</small>{% endif %}
+        {% if t.observacao %}<small class="suave d-block">{{ t.observacao }}</small>{% endif %}</td>
+      <td><span class="tag {{ t.origem_cor }}">{{ t.origem_nome }}</span></td>
+      <td class="acoes-turno">
+        <details class="checkin-rapido"><summary class="botao sec mini">Trocar</summary>
+        <form method="post" action="/escalas/turnos/{{ t.id }}/trocar" class="linha">
+          <select name="membro_id"><option value="">Passar para…</option>
+            {% for m in membros if m.id != t.membro_id %}<option value="{{ m.id }}">{{ m.nome }}</option>{% endfor %}</select>
+          <select name="outro_turno_id"><option value="">ou permutar com…</option>
+            {% for o in futuros if o.id != t.id and o.membro_id != t.membro_id %}<option value="{{ o.id }}">{{ o.inicio|data('%d/%m') }} {{ o.membro.primeiro_nome }}</option>{% endfor %}</select>
+          <input name="observacao" placeholder="Motivo" size="10">
+          <button class="mini">Confirmar</button>
+        </form></details>
+        <form method="post" action="/escalas/turnos/{{ t.id }}/excluir" onsubmit="return confirm('Remover turno?')"><button class="sec mini" title="Remover">✕</button></form>
+      </td>
+    </tr>
+  {% else %}<tr><td colspan="4" class="vazio">Nenhum turno futuro — use “Gerar turnos”.</td></tr>{% endfor %}
+  </tbody>
+</table>
+<details class="caixa"><summary>+ Turno manual</summary>
+  <form method="post" action="/escalas/{{ e.id }}/turno-manual" class="linha">
+    <select name="membro_id">{% for m in membros %}<option value="{{ m.id }}">{{ m.nome }}</option>{% endfor %}</select>
+    <input type="date" name="inicio" required> a <input type="date" name="fim">
+    <input name="observacao" placeholder="Observação"><button>Criar</button>
+  </form>
+</details>
+
+<div class="duas-colunas">
+  <section class="caixa">
+    <h3>Rodízio <small class="suave">(ordem)</small></h3>
+    <ol class="rodizio">
+    {% for p in e.participantes %}
+      <li class="{{ 'inativo' if not p.membro.ativo }}"><span>{{ p.membro.nome }}{% if not p.membro.ativo %} <span class="tag">inativo</span>{% endif %}</span>
+        <span class="acoes">
+          <form method="post" action="/escalas/{{ e.id }}/participantes/{{ p.id }}/subir"><button class="sec mini" {{ 'disabled' if loop.first }} title="Subir">↑</button></form>
+          <form method="post" action="/escalas/{{ e.id }}/participantes/{{ p.id }}/descer"><button class="sec mini" {{ 'disabled' if loop.last }} title="Descer">↓</button></form>
+          <form method="post" action="/escalas/{{ e.id }}/participantes/{{ p.id }}/remover" onsubmit="return confirm('Remover do rodízio?')"><button class="sec mini" title="Remover">✕</button></form>
+        </span></li>
+    {% else %}<li class="suave">Ninguém ainda.</li>{% endfor %}
+    </ol>
+    {% if fora %}<form method="post" action="/escalas/{{ e.id }}/participantes" class="linha">
+      <select name="membro_id">{% for m in fora %}<option value="{{ m.id }}">{{ m.nome }}</option>{% endfor %}</select><button class="sec">Adicionar</button>
+    </form>{% endif %}
+  </section>
+  <section class="caixa">
+    <h3>Equilíbrio <small class="suave">(últimos 6 meses + futuros)</small></h3>
+    <table>
+      <thead><tr><th>Pessoa</th><th class="num">Feitos</th><th class="num">Agendados</th><th class="num">Dias</th><th class="num">vs. média</th></tr></thead>
+      <tbody>{% for x in equilibrio %}<tr><td>{{ x.membro.nome }}</td><td class="num">{{ x.passados }}</td><td class="num">{{ x.futuros }}</td>
+        <td class="num">{{ x.dias }}</td><td class="num {{ 'txt-risco' if x.desvio|abs >= 2 }}">{{ '%+.1f'|format(x.desvio) }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+</div>
+
+<h2>Turnos anteriores</h2>
+<table>
+  <thead><tr><th>Período</th><th>Responsável</th><th>Origem</th></tr></thead>
+  <tbody>{% for t in passados %}<tr><td>{{ t.inicio|data('%d/%m/%y') }}{% if t.fim != t.inicio %} – {{ t.fim|data('%d/%m/%y') }}{% endif %}</td>
+    <td>{{ t.membro.nome }}{% if t.membro_original %} <small class="suave">(no lugar de {{ t.membro_original.primeiro_nome }})</small>{% endif %}</td>
+    <td><span class="tag {{ t.origem_cor }}">{{ t.origem_nome }}</span></td></tr>
+  {% else %}<tr><td colspan="3" class="vazio">Sem histórico.</td></tr>{% endfor %}</tbody>
+</table>
+{% if passados|length == 8 %}<p><a href="?passados=1">Ver últimos 6 meses</a></p>{% endif %}
+
+<details class="caixa"><summary>Configurações da escala</summary>
+  <form class="formulario" method="post" action="/escalas/{{ e.id }}/config">
+    <label>Nome<input name="nome" value="{{ e.nome }}" required></label>
+    <label>Duração do turno (dias)<input type="number" name="duracao_dias" min="1" max="31" value="{{ e.duracao_dias }}"></label>
+    <label class="largo">Descrição<input name="descricao" value="{{ e.descricao or '' }}"></label>
+    <label class="check"><input type="checkbox" name="pular_ausentes" value="1" {{ 'checked' if e.pular_ausentes }}> Pular ausentes</label>
+    <label class="check"><input type="checkbox" name="apenas_dias_uteis" value="1" {{ 'checked' if e.apenas_dias_uteis }}> Apenas dias úteis</label>
+    <label class="check"><input type="checkbox" name="ativa" value="1" {{ 'checked' if e.ativa }}> Escala ativa</label>
+    <div class="acoes largo"><button>Salvar</button></div>
+  </form>
+</details>
+<details class="perigo"><summary>Excluir escala</summary>
+  <form method="post" action="/escalas/{{ e.id }}/excluir" onsubmit="return confirm('Excluir a escala e todo o histórico?')"><button class="perigo">Excluir</button></form>
+</details>
+{% endblock %}
