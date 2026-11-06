@@ -1,0 +1,8 @@
+<label>Tipo
+  <select name="tipo">
+    {% for k, v in tipos.items() %}<option value="{{ k }}" {{ 'selected' if a and a.tipo == k }}>{{ v[0] }}</option>{% endfor %}
+  </select></label>
+<label>Início<input type="date" name="inicio" required value="{{ a.inicio if a else pre.inicio }}"></label>
+<label>Fim<input type="date" name="fim" required value="{{ a.fim if a else '' }}"></label>
+<label>Dias vendidos (abono pecuniário, só férias)<input type="number" name="dias_vendidos" min="0" max="10" value="{{ a.dias_vendidos if a else 0 }}"></label>
+<label class="largo">Observação<textarea name="observacao" rows="2">{{ a.observacao or '' if a }}</textarea></label>

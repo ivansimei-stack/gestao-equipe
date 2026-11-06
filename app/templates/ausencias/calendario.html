@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Calendário de ausências</h1>
+{% include "ausencias/_menu.html" %}
+<form class="filtros" method="get">
+  <a class="botao sec" href="?mes={{ anterior.strftime('%Y-%m') }}&area={{ area }}&solicitadas={{ solicitadas }}">‹</a>
+  <strong class="mes">{{ MESES[ref.month-1]|capitalize }} {{ ref.year }}</strong>
+  <a class="botao sec" href="?mes={{ proximo.strftime('%Y-%m') }}&area={{ area }}&solicitadas={{ solicitadas }}">›</a>
+  <input type="hidden" name="mes" value="{{ ref.strftime('%Y-%m') }}">
+  <select name="area" onchange="this.form.submit()">
+    <option value="">Todas as áreas</option>
+    {% for a in areas %}<option {{ 'selected' if a == area }}>{{ a }}</option>{% endfor %}
+  </select>
+  <select name="solicitadas" onchange="this.form.submit()">
+    <option value="1" {{ 'selected' if solicitadas == '1' }}>Aprovadas + solicitadas</option>
+    <option value="0" {{ 'selected' if solicitadas == '0' }}>Só aprovadas</option>
+  </select>
+</form>
+
+<div class="tabela-rolagem">
+<table class="calendario">
+  <thead>
+    <tr><th class="nome">Pessoa</th>
+      {% for d in dias %}
+      {% set fer = feriado(d) %}
+      <th class="{{ 'fds' if d.weekday() >= 5 }} {{ 'feriado' if fer }} {{ 'hoje' if d == hoje() }}" title="{{ fer or '' }}">
+        <span>{{ DIAS_SEMANA[d.weekday()][0]|upper }}</span>{{ d.day }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for m in membros %}
+    <tr><td class="nome"><a href="/equipe/{{ m.id }}">{{ m.nome }}</a>{% if m.area %}<small class="suave"> · {{ m.area }}</small>{% endif %}</td>
+    {% for d in dias %}
+      {% set a = grade[m.id].get(d) %}
+      {% set fer = feriado(d) %}
+      {% if a %}
+        <td class="dia {{ a.tipo_cor }} {{ 'pendente' if a.status == 'solicitada' }}" title="{{ a.tipo_nome }} ({{ a.status_nome }}) {{ a.inicio|data('%d/%m') }}–{{ a.fim|data('%d/%m') }}">
+          <a href="/ausencias/{{ a.id }}"></a></td>
+      {% else %}
+        <td class="dia vago {{ 'fds' if d.weekday() >= 5 }} {{ 'feriado' if fer }}">
+          {% if d.weekday() < 5 and not fer %}<a href="/ausencias/nova?membro_id={{ m.id }}&inicio={{ d }}" title="Registrar ausência"></a>{% endif %}</td>
+      {% endif %}
+    {% endfor %}
+    </tr>
+  {% else %}
+    <tr><td colspan="{{ dias|length + 1 }}" class="vazio">Nenhuma pessoa ativa.</td></tr>
+  {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr><td class="nome">Presentes</td>
+    {% for d in dias %}
+      <td class="num-dia {{ 'critico' if d in criticos }} {{ 'fds' if d.weekday() >= 5 or feriado(d) }}" title="{{ 'Abaixo da cobertura mínima' if d in criticos }}">{{ presentes[d] }}</td>
+    {% endfor %}</tr>
+  </tfoot>
+</table>
+</div>
+<p class="legenda">
+  {% for k, v in tipos.items() if k != 'outro' %}<span><span class="ponto {{ v[1] }}"></span>{{ v[0] }}</span>{% endfor %}
+  <span><span class="ponto c1 pendente"></span>Hachurado = aguardando aprovação</span>
+  <span><span class="ponto critico"></span>Abaixo da cobertura mínima</span>
+</p>
+{% endblock %}

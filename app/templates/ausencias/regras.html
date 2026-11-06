@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Regras de cobertura</h1>
+{% include "ausencias/_menu.html" %}
+<p class="suave">Defina quantas pessoas precisam estar presentes, no mínimo, em cada área nos dias úteis.
+  Pedidos que deixem a área abaixo do mínimo aparecem com alerta, e o calendário destaca os dias críticos.</p>
+{% if not contagem %}<p>Cadastre áreas nos membros da <a href="/equipe">equipe</a> para configurar regras.</p>{% else %}
+<form method="post">
+<table>
+  <thead><tr><th>Área</th><th class="num">Pessoas ativas</th><th>Mínimo presente</th></tr></thead>
+  <tbody>
+  {% for area, total in contagem.items() %}
+    <tr><td>{{ area }}</td><td class="num">{{ total }}</td>
+      <td><input type="number" min="0" max="{{ total }}" name="min_{{ area }}" value="{{ regras.get(area, '') }}" placeholder="sem regra"></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p><button>Salvar regras</button></p>
+</form>
+{% endif %}
+{% endblock %}

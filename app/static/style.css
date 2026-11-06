@@ -94,3 +94,32 @@ details.perigo { margin-top:2rem; color:var(--suave); } details.perigo summary {
   header { padding:.75rem 1rem; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
 }
+
+/* submenu */
+.submenu { display:flex; flex-wrap:wrap; gap:.4rem 1rem; align-items:center; margin:-.25rem 0 1.25rem; padding-bottom:.6rem; border-bottom:1px solid var(--borda); }
+.submenu a:not(.botao) { color:var(--suave); text-decoration:none; } .submenu a.ativo { color:var(--pri); font-weight:600; }
+.submenu .botao { margin-left:auto; }
+.aviso { color:var(--alerta); font-size:.88rem; margin:.15rem 0; }
+.exportar { margin-top:1.5rem; } h4 { margin:.5rem 0; }
+.mini { padding:.15rem .5rem !important; font-size:.85rem; }
+
+/* cores categóricas */
+.c1 { --cor:var(--c1); } .c2 { --cor:var(--c2); } .c3 { --cor:var(--c3); } .c4 { --cor:var(--c4); } .c5 { --cor:var(--c5); } .c6 { --cor:var(--c6); }
+.ponto { display:inline-block; width:.75rem; height:.75rem; border-radius:3px; background:var(--cor, var(--c6)); margin-right:.35rem; vertical-align:-1px; }
+.ponto.critico { background:var(--risco-fundo); outline:1px solid var(--risco); }
+.ponto.pendente, td.dia.pendente { background:repeating-linear-gradient(45deg, var(--cor), var(--cor) 3px, transparent 3px, transparent 6px) !important; }
+.legenda { display:flex; flex-wrap:wrap; gap:.4rem 1.2rem; font-size:.85rem; color:var(--suave); }
+.mes { min-width:9rem; text-align:center; }
+
+/* calendário */
+table.calendario { font-size:.8rem; border-collapse:separate; border-spacing:0; }
+table.calendario th, table.calendario td { padding:0; text-align:center; border-bottom:1px solid var(--borda); border-right:1px solid var(--borda); }
+table.calendario th { padding:.3rem 0; min-width:1.7rem; } table.calendario th span { display:block; font-size:.65rem; font-weight:400; }
+table.calendario .nome { text-align:left; padding:.35rem .6rem; white-space:nowrap; position:sticky; left:0; background:var(--card); z-index:1; min-width:11rem; }
+table.calendario td.dia { height:1.9rem; } table.calendario td.dia a { display:block; width:100%; height:100%; }
+table.calendario td.dia:not(.vago) { background:var(--cor); }
+table.calendario td.vago a:hover { background:var(--pri-claro); }
+table.calendario .fds, table.calendario .feriado { background:var(--fundo); }
+table.calendario th.feriado { color:var(--risco); } table.calendario th.hoje { background:var(--pri); color:#fff; }
+table.calendario .num-dia { font-weight:600; padding:.3rem 0; } table.calendario .num-dia.fds { color:var(--suave); font-weight:400; }
+table.calendario .critico { background:var(--risco-fundo); color:var(--risco); }

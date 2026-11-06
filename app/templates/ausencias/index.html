@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block titulo %}Férias e Ausências · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<h1>Férias e Ausências</h1>
+{% include "ausencias/_menu.html" %}
+
+<div class="duas-colunas">
+  <section class="caixa">
+    <h3>Fora hoje <small class="suave">{{ hoje()|data }}</small></h3>
+    <ul>
+    {% for a in hoje_ausentes %}
+      <li><a href="/equipe/{{ a.membro_id }}">{{ a.membro.nome }}</a> — {{ a.tipo_nome }} <span class="suave">até {{ a.fim|data('%d/%m') }}</span></li>
+    {% else %}<li class="suave">Equipe completa hoje.</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="caixa">
+    <h3>Férias vencidas ou vencendo</h3>
+    <ul>
+    {% for s in saldos_alerta %}
+      {% set sit = situacoes[s.pior_situacao] %}
+      <li><a href="/equipe/{{ s.membro.id }}">{{ s.membro.nome }}</a> — {{ s.disponivel|num }} dia(s), limite {{ s.proximo_limite|data }}
+        <span class="tag {{ sit[1] }}">{{ sit[0] }}</span></li>
+    {% else %}<li class="suave">Nenhum período em risco.</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+<h2>Aguardando aprovação <small>{{ pendentes|length }}</small></h2>
+{% if pendentes %}
+<table>
+  <thead><tr><th>Pessoa</th><th>Tipo</th><th>Período</th><th class="num">Dias</th><th>Avisos</th><th></th></tr></thead>
+  <tbody>
+  {% for a, avisos in pendentes %}
+    <tr>
+      {% include "ausencias/_linha.html" %}
+      <td>{% for av in avisos %}<div class="aviso">⚠ {{ av }}</div>{% else %}<span class="tag ok">Sem conflitos</span>{% endfor %}</td>
+      <td><div class="acoes">
+        <form method="post" action="/ausencias/{{ a.id }}/status">
+          <input type="hidden" name="voltar" value="/ausencias"><input type="hidden" name="status" value="aprovada">
+          <button class="ok mini">Aprovar</button></form>
+        <a class="botao sec mini" href="/ausencias/{{ a.id }}">Analisar</a>
+      </div></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="suave">Nenhum pedido pendente.</p>{% endif %}
+
+<h2>Próximas ausências aprovadas <small>45 dias</small></h2>
+<table>
+  <thead><tr><th>Pessoa</th><th>Tipo</th><th>Período</th><th class="num">Dias</th></tr></thead>
+  <tbody>
+  {% for a in proximas %}<tr>{% include "ausencias/_linha.html" %}</tr>
+  {% else %}<tr><td colspan="4" class="vazio">Nada programado.</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+<p class="suave exportar">Exportar: <a href="/ausencias/exportar.csv">planilha (CSV)</a> ·
+  <a href="/ausencias/calendario.ics">calendário (iCal — importe no Google Agenda/Outlook)</a></p>
+{% endblock %}

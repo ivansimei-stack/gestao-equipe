@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Nova ausência</h1>
+{% include "ausencias/_menu.html" %}
+<form class="formulario" method="post" action="/ausencias/nova" id="form-ausencia">
+  <label>Pessoa
+    <select name="membro_id" required>
+      <option value="">Selecione…</option>
+      {% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if pre.membro_id == m.id }}>{{ m.nome }}</option>{% endfor %}
+    </select></label>
+  {% include "ausencias/_campos.html" %}
+  <label class="check largo"><input type="checkbox" name="aprovar" value="1"> Já registrar como aprovada</label>
+  <div id="avisos" class="largo"></div>
+  <div class="acoes largo"><button>Registrar</button><a href="/ausencias">Cancelar</a></div>
+</form>
+<script>
+// Pré-visualiza avisos (CLT, cobertura) antes de salvar
+const f = document.getElementById('form-ausencia'), caixa = document.getElementById('avisos');
+async function simular() {
+  const d = Object.fromEntries(new FormData(f));
+  if (!d.membro_id || !d.inicio) { caixa.innerHTML = ''; return; }
+  const corpo = {membro_id: +d.membro_id, tipo: d.tipo, inicio: d.inicio, fim: d.fim || d.inicio,
+                 dias_vendidos: +(d.dias_vendidos || 0), observacao: d.observacao};
+  const r = await fetch('/api/ausencias/simular', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(corpo)});
+  const j = await r.json();
+  if (!r.ok) { caixa.innerHTML = `<div class="flash erro">${typeof j.detail === 'string' ? j.detail : 'Dados inválidos'}</div>`; return; }
+  caixa.innerHTML = j.length ? j.map(a => `<div class="aviso">⚠ ${a}</div>`).join('') : '<span class="tag ok">Sem avisos</span>';
+}
+f.addEventListener('change', simular); simular();
+</script>
+{% endblock %}

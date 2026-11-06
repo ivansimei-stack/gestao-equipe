@@ -1,0 +1,4 @@
+<td><a href="/equipe/{{ a.membro_id }}">{{ a.membro.nome }}</a></td>
+<td><span class="ponto {{ a.tipo_cor }}"></span>{{ a.tipo_nome }}</td>
+<td><a href="/ausencias/{{ a.id }}">{{ a.inicio|data('%d/%m/%y') }} → {{ a.fim|data('%d/%m/%y') }}</a></td>
+<td class="num">{{ a.dias_corridos }}{% if a.dias_vendidos %} <small class="suave">+{{ a.dias_vendidos }} vend.</small>{% endif %}</td>

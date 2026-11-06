@@ -13,11 +13,23 @@ from app.main import app as fastapi_app
 
 
 @pytest.fixture()
-def client():
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    database.ativar_fk_sqlite(engine)
+def engine():
+    eng = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    database.ativar_fk_sqlite(eng)
     import app.ferramentas  # noqa: F401
-    database.Base.metadata.create_all(engine)
+    database.Base.metadata.create_all(eng)
+    return eng
+
+
+@pytest.fixture()
+def db_sessao(engine):
+    s = sessionmaker(bind=engine, expire_on_commit=False)()
+    yield s
+    s.close()
+
+
+@pytest.fixture()
+def client(engine):
     Sessao = sessionmaker(bind=engine, expire_on_commit=False)
 
     def _db():

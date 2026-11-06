@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Histórico de ausências</h1>
+{% include "ausencias/_menu.html" %}
+<form class="filtros" method="get">
+  <select name="membro_id"><option value="">Todas as pessoas</option>
+    {% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if f.membro_id == m.id|string }}>{{ m.nome }}</option>{% endfor %}</select>
+  <select name="tipo"><option value="">Todos os tipos</option>
+    {% for k, v in tipos.items() %}<option value="{{ k }}" {{ 'selected' if f.tipo == k }}>{{ v[0] }}</option>{% endfor %}</select>
+  <select name="status"><option value="">Todos os status</option>
+    {% for k, v in status_opcoes.items() %}<option value="{{ k }}" {{ 'selected' if f.status == k }}>{{ v[0] }}</option>{% endfor %}</select>
+  <select name="ano"><option value="">Todos os anos</option>
+    {% for a in anos %}<option {{ 'selected' if f.ano == a|string }}>{{ a }}</option>{% endfor %}</select>
+  <button>Filtrar</button>
+  <a href="/ausencias/exportar.csv{{ '?ano=' ~ f.ano if f.ano }}">Exportar CSV</a>
+</form>
+<table>
+  <thead><tr><th>Pessoa</th><th>Tipo</th><th>Período</th><th class="num">Dias</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for a in ausencias %}<tr>{% include "ausencias/_linha.html" %}<td><span class="tag {{ a.status_cor }}">{{ a.status_nome }}</span></td></tr>
+  {% else %}<tr><td colspan="5" class="vazio">Nenhum registro.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,8 @@
+<nav class="submenu">
+  <a href="/ausencias" class="{{ 'ativo' if request.url.path == '/ausencias' }}">Visão geral</a>
+  <a href="/ausencias/calendario" class="{{ 'ativo' if 'calendario' in request.url.path }}">Calendário</a>
+  <a href="/ausencias/saldos" class="{{ 'ativo' if 'saldos' in request.url.path }}">Saldo de férias</a>
+  <a href="/ausencias/historico" class="{{ 'ativo' if 'historico' in request.url.path }}">Histórico</a>
+  <a href="/ausencias/regras" class="{{ 'ativo' if 'regras' in request.url.path }}">Regras de cobertura</a>
+  <a class="botao" href="/ausencias/nova">+ Nova ausência</a>
+</nav>

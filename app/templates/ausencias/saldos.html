@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Saldo de férias</h1>
+{% include "ausencias/_menu.html" %}
+<p class="suave">Regras CLT: 30 dias por período aquisitivo de 12 meses, a serem gozados nos 12 meses seguintes
+  (período concessivo). Férias fora do prazo são pagas em dobro. Alerta {{ 60 }} dias antes do vencimento.</p>
+<table>
+  <thead><tr><th>Pessoa</th><th>Admissão</th><th class="num">Disponível</th><th class="num">Em pedidos</th><th>Próximo limite</th><th>Situação</th><th></th></tr></thead>
+  <tbody>
+  {% for s in saldos %}
+    {% set sit = situacoes[s.pior_situacao] %}
+    <tr>
+      <td><a href="/equipe/{{ s.membro.id }}">{{ s.membro.nome }}</a></td>
+      <td>{{ s.membro.data_admissao|data }}</td>
+      <td class="num"><strong>{{ s.disponivel|num }}</strong></td>
+      <td class="num">{{ s.solicitados or '—' }}</td>
+      <td>{{ s.proximo_limite|data }}</td>
+      <td>{% if s.periodos %}<span class="tag {{ sit[1] }}">{{ sit[0] }}</span>{% else %}<span class="tag">Sem admissão</span>{% endif %}</td>
+      <td><a class="botao sec mini" href="/ausencias/nova?membro_id={{ s.membro.id }}">Programar</a></td>
+    </tr>
+  {% else %}<tr><td colspan="7" class="vazio">Nenhuma pessoa ativa.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

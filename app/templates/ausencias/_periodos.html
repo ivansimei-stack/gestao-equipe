@@ -1,0 +1,21 @@
+{% if not s.periodos %}
+<p class="suave">Cadastre a data de admissão de {{ s.membro.primeiro_nome }} para calcular o saldo.</p>
+{% else %}
+<table>
+  <thead><tr><th>Período aquisitivo</th><th>Gozar até</th><th class="num">Direito</th><th class="num">Usados</th><th class="num">Saldo</th><th>Parcelas</th><th>Situação</th></tr></thead>
+  <tbody>
+  {% for p in s.periodos|reverse %}
+    {% set sit = situacoes[p.situacao] %}
+    <tr>
+      <td>{{ p.inicio|data }} – {{ p.fim|data }}</td>
+      <td>{{ p.concessivo_fim|data }}</td>
+      <td class="num">{{ p.direito|num }}</td><td class="num">{{ p.usados }}</td>
+      <td class="num"><strong>{{ p.saldo|num }}</strong></td>
+      <td>{% for x in p.parcelas %}<a href="/ausencias/{{ x.id }}" class="tag info">{{ x.inicio|data('%d/%m/%y') }} · {{ x.dias_corridos }}d</a> {% else %}—{% endfor %}</td>
+      <td><span class="tag {{ sit[1] }}">{{ sit[0] }}</span></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if s.solicitados %}<p class="suave">+ {{ s.solicitados }} dia(s) em pedidos aguardando aprovação.</p>{% endif %}
+{% endif %}

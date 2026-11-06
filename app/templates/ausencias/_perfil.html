@@ -1,0 +1,17 @@
+<div class="duas-colunas">
+  <div>
+    <h4>Saldo de férias: <strong>{{ p.saldo.disponivel|num }} dia(s)</strong>
+      {% if p.saldo.proximo_limite %}<small class="suave">· gozar até {{ p.saldo.proximo_limite|data }}</small>{% endif %}
+      {% if p.saldo.periodos %}{% set sit = p.situacoes[p.saldo.pior_situacao] %}<span class="tag {{ sit[1] }}">{{ sit[0] }}</span>{% endif %}</h4>
+    <h4>Próximas</h4>
+    <ul>{% for a in p.proximas %}<li><a href="/ausencias/{{ a.id }}">{{ a.tipo_nome }}: {{ a.inicio|data('%d/%m') }}–{{ a.fim|data('%d/%m/%y') }}</a> <span class="tag {{ a.status_cor }}">{{ a.status_nome }}</span></li>
+    {% else %}<li class="suave">Nada programado.</li>{% endfor %}</ul>
+  </div>
+  <div>
+    <h4>Recentes</h4>
+    <ul>{% for a in p.recentes %}<li><a href="/ausencias/{{ a.id }}">{{ a.tipo_nome }}: {{ a.inicio|data('%d/%m') }}–{{ a.fim|data('%d/%m/%y') }}</a> <span class="tag {{ a.status_cor }}">{{ a.status_nome }}</span></li>
+    {% else %}<li class="suave">Sem registros.</li>{% endfor %}</ul>
+  </div>
+</div>
+<p><a class="botao sec mini" href="/ausencias/nova?membro_id={{ m.id }}">+ Registrar ausência</a>
+   <a class="botao sec mini" href="/ausencias/historico?membro_id={{ m.id }}">Ver histórico</a></p>

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="topo">
+  <h1>{{ a.tipo_nome }} — <a href="/equipe/{{ a.membro_id }}">{{ a.membro.nome }}</a></h1>
+  <span class="tag {{ a.status_cor }}">{{ a.status_nome }}</span>
+</div>
+{% include "ausencias/_menu.html" %}
+
+<dl class="ficha">
+  <div><dt>Período</dt><dd>{{ a.inicio|data }} a {{ a.fim|data }}</dd></div>
+  <div><dt>Dias corridos / úteis</dt><dd>{{ a.dias_corridos }} / {{ a.dias_uteis }}</dd></div>
+  {% if a.dias_vendidos %}<div><dt>Dias vendidos</dt><dd>{{ a.dias_vendidos }}</dd></div>{% endif %}
+  <div><dt>Registrado em</dt><dd>{{ a.criado_em|data('%d/%m/%Y %H:%M') }}</dd></div>
+  {% if a.decidido_em %}<div><dt>Decidido em</dt><dd>{{ a.decidido_em|data('%d/%m/%Y %H:%M') }}</dd></div>{% endif %}
+  {% if a.motivo_decisao %}<div><dt>Motivo</dt><dd>{{ a.motivo_decisao }}</dd></div>{% endif %}
+</dl>
+{% if a.observacao %}<p class="obs">{{ a.observacao }}</p>{% endif %}
+
+{% if avisos %}
+<section class="caixa"><h3>Avisos</h3>{% for av in avisos %}<div class="aviso">⚠ {{ av }}</div>{% endfor %}</section>
+{% endif %}
+
+<section class="caixa">
+  <h3>Decisão</h3>
+  <form method="post" action="/ausencias/{{ a.id }}/status" class="linha">
+    <input name="motivo" placeholder="Comentário / motivo (opcional)" size="40">
+    {% if a.status == 'solicitada' %}
+      <button name="status" value="aprovada" class="ok">Aprovar</button>
+      <button name="status" value="recusada" class="perigo">Recusar</button>
+      <button name="status" value="cancelada" class="sec">Cancelar pedido</button>
+    {% elif a.status == 'aprovada' %}
+      <button name="status" value="cancelada" class="sec">Cancelar ausência</button>
+      <button name="status" value="recusada" class="perigo">Revogar aprovação</button>
+    {% else %}
+      <button name="status" value="solicitada" class="sec">Reabrir como solicitada</button>
+    {% endif %}
+  </form>
+</section>
+
+{% if saldo %}
+<section class="caixa">
+  <h3>Saldo de férias de {{ a.membro.primeiro_nome }}</h3>
+  {% with s = saldo %}{% include "ausencias/_periodos.html" %}{% endwith %}
+</section>
+{% endif %}
+
+<details class="caixa">
+  <summary>Editar dados</summary>
+  <form class="formulario" method="post" action="/ausencias/{{ a.id }}/editar">
+    {% set pre = {} %}{% include "ausencias/_campos.html" %}
+    <div class="acoes largo"><button>Salvar</button></div>
+  </form>
+</details>
+
+<details class="perigo">
+  <summary>Excluir registro</summary>
+  <form method="post" action="/ausencias/{{ a.id }}/excluir" onsubmit="return confirm('Excluir definitivamente?')">
+    <p>Prefira “cancelar” para manter o histórico.</p><button class="perigo">Excluir</button></form>
+</details>
+{% endblock %}

@@ -11,6 +11,7 @@ que compartilha o mesmo banco, o mesmo cadastro de pessoas e o mesmo layout.
 ```bash
 make setup      # cria .venv e instala dependências
 cp .env.example .env
+make exemplo    # (opcional) popula com uma equipe fictícia — LIMPAR=1 recria do zero
 make dev        # http://localhost:8000  (docs da API em /docs)
 make test
 ```
@@ -48,7 +49,22 @@ Convenções:
 - Tabelas prefixadas com o slug (`ferias_periodos`, …).
 - Um arquivo de teste por ferramenta em `tests/`.
 
-## Ideias de ferramentas
+## Ferramentas
+
+### Equipe
+Cadastro de pessoas (cargo, área, admissão, nascimento), perfil individual que reúne os dados de
+todas as ferramentas, aniversários e tempo de casa.
+
+### Férias e Ausências (`/ausencias`)
+- Pedidos de férias, folgas, licenças e treinamentos com fluxo **solicitada → aprovada/recusada/cancelada**
+- **Saldo de férias pela CLT**: períodos aquisitivo/concessivo, alerta 60 dias antes do vencimento,
+  férias vencidas, antecipadas e venda de até 10 dias (abono pecuniário)
+- Avisos automáticos: início nos 2 dias antes de feriado/domingo (art. 134 §3º), parcelas < 5 dias,
+  nenhuma parcela ≥ 14 dias, mais de 3 parcelas, saldo insuficiente
+- **Cobertura mínima por área** e alerta de conflitos com colegas
+- Calendário mensal com feriados nacionais (inclusive móveis), exportação CSV e iCal
+
+## Próximas ferramentas
 
 - **Férias e ausências** — calendário e conflitos de cobertura
 - **1:1s** — pautas, anotações e ações por pessoa
