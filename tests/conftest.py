@@ -15,6 +15,7 @@ from app.main import app as fastapi_app
 @pytest.fixture()
 def client():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    database.ativar_fk_sqlite(engine)
     import app.ferramentas  # noqa: F401
     database.Base.metadata.create_all(engine)
     Sessao = sessionmaker(bind=engine, expire_on_commit=False)

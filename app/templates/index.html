@@ -1,10 +1,27 @@
 {% extends "base.html" %}
 {% block conteudo %}
-<h1>Ferramentas</h1>
+<h1>Painel <small>{{ hoje()|data('%d/%m/%Y') }}</small></h1>
+
+{% for p in paineis %}
+<section class="painel">
+  <h2><a href="/{{ p.ferramenta.slug }}">{{ p.ferramenta.nome }}</a></h2>
+  <div class="indicadores">
+    {% for i in p.itens %}
+    <a class="indicador {{ i.nivel or '' }}" {% if i.link %}href="{{ i.link }}"{% endif %}>
+      <span class="rotulo">{{ i.titulo }}</span>
+      <strong>{{ i.valor }}</strong>
+      {% if i.detalhe %}<span class="detalhe">{{ i.detalhe }}</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+<h2>Ferramentas</h2>
 <div class="grade">
   {% for f in FERRAMENTAS %}
   <a class="cartao" href="/{{ f.slug }}">
-    <h2>{{ f.nome }}</h2>
+    <h3>{{ f.nome }}</h3>
     <p>{{ f.descricao }}</p>
   </a>
   {% endfor %}

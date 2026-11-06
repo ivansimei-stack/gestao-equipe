@@ -1,34 +1,49 @@
 {% extends "base.html" %}
 {% block titulo %}Equipe · {{ APP_NOME }}{% endblock %}
 {% block conteudo %}
-<h1>Equipe <small>{{ membros|selectattr("ativo")|list|length }} ativos</small></h1>
+<div class="topo">
+  <h1>Equipe <small>{{ membros|length }} pessoa(s)</small></h1>
+  <a class="botao" href="/equipe/novo">+ Novo membro</a>
+</div>
 
-<form class="linha" method="post" action="/equipe">
-  <input name="nome" placeholder="Nome" required>
-  <input name="email" type="email" placeholder="E-mail">
-  <input name="cargo" placeholder="Cargo">
-  <input name="area" placeholder="Área">
-  <input name="data_admissao" type="date" title="Data de admissão">
-  <button>Adicionar</button>
+<form class="filtros" method="get">
+  <select name="area" onchange="this.form.submit()">
+    <option value="">Todas as áreas</option>
+    {% for a in areas %}<option {{ 'selected' if a == area }}>{{ a }}</option>{% endfor %}
+  </select>
+  <select name="status" onchange="this.form.submit()">
+    {% for v, r in [('ativos','Ativos'),('inativos','Inativos'),('todos','Todos')] %}
+    <option value="{{ v }}" {{ 'selected' if v == status }}>{{ r }}</option>
+    {% endfor %}
+  </select>
 </form>
 
 <table>
-  <thead><tr><th>Nome</th><th>E-mail</th><th>Cargo</th><th>Área</th><th>Admissão</th><th>Status</th></tr></thead>
+  <thead><tr><th>Nome</th><th>Cargo</th><th>Área</th><th>E-mail</th><th>Tempo de casa</th><th>Status</th></tr></thead>
   <tbody>
   {% for m in membros %}
     <tr class="{{ '' if m.ativo else 'inativo' }}">
-      <td>{{ m.nome }}</td><td>{{ m.email or '—' }}</td><td>{{ m.cargo or '—' }}</td>
-      <td>{{ m.area or '—' }}</td>
-      <td>{{ m.data_admissao.strftime('%d/%m/%Y') if m.data_admissao else '—' }}</td>
-      <td>
-        <form method="post" action="/equipe/{{ m.id }}/alternar">
-          <button class="sec">{{ 'Ativo' if m.ativo else 'Inativo' }}</button>
-        </form>
-      </td>
+      <td><a href="/equipe/{{ m.id }}">{{ m.nome }}</a></td>
+      <td>{{ m.cargo or '—' }}</td><td>{{ m.area or '—' }}</td><td>{{ m.email or '—' }}</td>
+      <td>{{ m.tempo_de_casa() }}</td>
+      <td><span class="tag {{ 'ok' if m.ativo else '' }}">{{ 'Ativo' if m.ativo else 'Inativo' }}</span></td>
     </tr>
   {% else %}
-    <tr><td colspan="6" class="vazio">Nenhum membro cadastrado ainda.</td></tr>
+    <tr><td colspan="6" class="vazio">Nenhum membro encontrado. <a href="/equipe/novo">Cadastre o primeiro</a>.</td></tr>
   {% endfor %}
   </tbody>
 </table>
+
+{% if aniversariantes or aniv_empresa %}
+<div class="duas-colunas">
+  <section class="caixa">
+    <h3>🎂 Aniversários (30 dias)</h3>
+    <ul>{% for m, d in aniversariantes %}<li>{{ d|data('%d/%m') }} — <a href="/equipe/{{ m.id }}">{{ m.nome }}</a></li>{% else %}<li class="suave">Nenhum</li>{% endfor %}</ul>
+  </section>
+  <section class="caixa">
+    <h3>🏢 Aniversários de empresa (30 dias)</h3>
+    <ul>{% for m, d, anos in aniv_empresa %}<li>{{ d|data('%d/%m') }} — <a href="/equipe/{{ m.id }}">{{ m.nome }}</a> ({{ anos }} ano{{ 's' if anos > 1 }})</li>{% else %}<li class="suave">Nenhum</li>{% endfor %}</ul>
+  </section>
+</div>
+{% endif %}
 {% endblock %}

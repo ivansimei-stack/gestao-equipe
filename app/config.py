@@ -21,3 +21,6 @@ _load_env()
 
 APP_NOME = os.getenv("APP_NOME", "Gestão da Equipe")
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'data' / 'gestao.db'}")
+# Se definidos, o app exige login HTTP Basic (recomendado fora da sua máquina)
+APP_USUARIO = os.getenv("APP_USUARIO", "")
+APP_SENHA = os.getenv("APP_SENHA", "")

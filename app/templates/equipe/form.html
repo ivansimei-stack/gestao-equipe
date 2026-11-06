@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>{{ 'Editar ' ~ m.nome if m else 'Novo membro' }}</h1>
+<form class="formulario" method="post">
+  <label>Nome completo<input name="nome" required maxlength="120" value="{{ m.nome if m }}"></label>
+  <label>E-mail<input name="email" type="email" value="{{ m.email or '' if m }}"></label>
+  <label>Telefone<input name="telefone" value="{{ m.telefone or '' if m }}"></label>
+  <label>Cargo<input name="cargo" value="{{ m.cargo or '' if m }}"></label>
+  <label>Área<input name="area" list="areas" value="{{ m.area or '' if m }}">
+    <datalist id="areas">{% for a in areas %}<option value="{{ a }}">{% endfor %}</datalist></label>
+  <label>Data de admissão<input name="data_admissao" type="date" value="{{ m.data_admissao or '' if m }}"></label>
+  <label>Data de nascimento<input name="data_nascimento" type="date" value="{{ m.data_nascimento or '' if m }}"></label>
+  <label class="largo">Observações<textarea name="observacoes" rows="3">{{ m.observacoes or '' if m }}</textarea></label>
+  <div class="acoes largo">
+    <button>Salvar</button>
+    <a href="{{ '/equipe/' ~ m.id if m else '/equipe' }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

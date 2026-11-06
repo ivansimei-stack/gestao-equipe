@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}{{ m.nome }} · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<div class="topo">
+  <h1>{{ m.nome }} {% if not m.ativo %}<span class="tag">Inativo</span>{% endif %}</h1>
+  <div class="acoes">
+    <a class="botao sec" href="/equipe/{{ m.id }}/editar">Editar</a>
+    <form method="post" action="/equipe/{{ m.id }}/alternar"><button class="sec">{{ 'Inativar' if m.ativo else 'Reativar' }}</button></form>
+  </div>
+</div>
+
+<dl class="ficha">
+  <div><dt>Cargo</dt><dd>{{ m.cargo or '—' }}</dd></div>
+  <div><dt>Área</dt><dd>{{ m.area or '—' }}</dd></div>
+  <div><dt>E-mail</dt><dd>{% if m.email %}<a href="mailto:{{ m.email }}">{{ m.email }}</a>{% else %}—{% endif %}</dd></div>
+  <div><dt>Telefone</dt><dd>{{ m.telefone or '—' }}</dd></div>
+  <div><dt>Admissão</dt><dd>{{ m.data_admissao|data }} ({{ m.tempo_de_casa() }})</dd></div>
+  <div><dt>Nascimento</dt><dd>{{ m.data_nascimento|data('%d/%m') }}</dd></div>
+</dl>
+{% if m.observacoes %}<p class="obs">{{ m.observacoes }}</p>{% endif %}
+
+{% for s in secoes %}
+<section class="caixa">
+  <h2><a href="/{{ s.ferramenta.slug }}">{{ s.ferramenta.nome }}</a></h2>
+  {% with p = s.p %}{% include s.ferramenta.slug ~ "/_perfil.html" %}{% endwith %}
+</section>
+{% endfor %}
+
+<details class="perigo">
+  <summary>Excluir membro</summary>
+  <p>Remove {{ m.nome }} e <strong>todos</strong> os registros ligados (ausências, 1:1s, avaliações…). Prefira inativar.</p>
+  <form method="post" action="/equipe/{{ m.id }}/excluir" class="linha">
+    <input name="confirmacao" placeholder="Digite “{{ m.primeiro_nome }}” para confirmar">
+    <button class="perigo">Excluir definitivamente</button>
+  </form>
+</details>
+{% endblock %}
