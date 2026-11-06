@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{{ APP_NOME }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <a class="marca" href="/">{{ APP_NOME }}</a>
+    <nav>
+      {% for f in FERRAMENTAS %}<a href="/{{ f.slug }}">{{ f.nome }}</a>{% endfor %}
+      <a href="/docs">API</a>
+    </nav>
+  </header>
+  <main>{% block conteudo %}{% endblock %}</main>
+</body>
+</html>

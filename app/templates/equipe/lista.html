@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}Equipe · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<h1>Equipe <small>{{ membros|selectattr("ativo")|list|length }} ativos</small></h1>
+
+<form class="linha" method="post" action="/equipe">
+  <input name="nome" placeholder="Nome" required>
+  <input name="email" type="email" placeholder="E-mail">
+  <input name="cargo" placeholder="Cargo">
+  <input name="area" placeholder="Área">
+  <input name="data_admissao" type="date" title="Data de admissão">
+  <button>Adicionar</button>
+</form>
+
+<table>
+  <thead><tr><th>Nome</th><th>E-mail</th><th>Cargo</th><th>Área</th><th>Admissão</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for m in membros %}
+    <tr class="{{ '' if m.ativo else 'inativo' }}">
+      <td>{{ m.nome }}</td><td>{{ m.email or '—' }}</td><td>{{ m.cargo or '—' }}</td>
+      <td>{{ m.area or '—' }}</td>
+      <td>{{ m.data_admissao.strftime('%d/%m/%Y') if m.data_admissao else '—' }}</td>
+      <td>
+        <form method="post" action="/equipe/{{ m.id }}/alternar">
+          <button class="sec">{{ 'Ativo' if m.ativo else 'Inativo' }}</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="vazio">Nenhum membro cadastrado ainda.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

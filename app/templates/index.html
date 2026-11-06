@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Ferramentas</h1>
+<div class="grade">
+  {% for f in FERRAMENTAS %}
+  <a class="cartao" href="/{{ f.slug }}">
+    <h2>{{ f.nome }}</h2>
+    <p>{{ f.descricao }}</p>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}
