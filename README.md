@@ -64,6 +64,14 @@ todas as ferramentas, aniversários e tempo de casa.
 - **Cobertura mínima por área** e alerta de conflitos com colegas
 - Calendário mensal com feriados nacionais (inclusive móveis), exportação CSV e iCal
 
+### 1:1s (`/um_a_um`)
+- Cadência configurável por pessoa (ou pausada), com situação **em dia / atrasada / agendada / nunca realizada**
+- Registro de **humor** e **carga de trabalho** com gráficos de tendência e alertas
+  (humor ≤ 2, queda de 2+ pontos, sobrecarga)
+- **Tópicos** anotados entre conversas entram automaticamente na pauta da próxima 1:1
+- **Ações combinadas** com responsável e prazo; as abertas são revisadas na reunião seguinte
+- Notas privadas do gestor e banco de perguntas sugeridas
+
 ## Próximas ferramentas
 
 - **Férias e ausências** — calendário e conflitos de cobertura

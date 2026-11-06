@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.database import Base, SessionLocal, criar_tabelas, engine  # noqa: E402
 from app.ferramentas.ausencias.models import Ausencia, RegraCobertura  # noqa: E402
 from app.ferramentas.equipe.models import Membro  # noqa: E402
+from app.ferramentas.um_a_um.models import Acao, ConfigUmAUm, Reuniao, Topico  # noqa: E402
 
 random.seed(42)
 HOJE = date.today()
@@ -91,8 +92,57 @@ def criar(db):
                  status="solicitada"),
     ]
     db.add_all(a)
+    n_reunioes = criar_um_a_um(db, membros)
     db.commit()
-    print(f"{len(membros)} membros e {len(a)} ausências criados.")
+    print(f"{len(membros)} membros, {len(a)} ausências e {n_reunioes} 1:1s criados.")
+
+
+ANOTACOES = [
+    "Falamos sobre as entregas do mês. Está confiante com o projeto atual.",
+    "Comentou que as reuniões estão tomando muito tempo; vamos revisar a agenda do time.",
+    "Quer se aprofundar em automação. Combinamos buscar um curso.",
+    "Relatou dificuldade de alinhamento com outra área. Vou intermediar.",
+    "Semana puxada por causa do fechamento. Pediu ajuda para priorizar.",
+    "Ótimo momento, recebeu elogio do cliente interno.",
+]
+ACOES = ["Montar plano de desenvolvimento", "Revisar processo de fechamento", "Inscrever-se no curso de SQL",
+         "Agendar conversa com a área de TI", "Documentar rotina de conciliação", "Apresentar resultado ao time"]
+
+
+def criar_um_a_um(db, membros):
+    total = 0
+    perfis = {  # (cadência, deslocamento da última 1:1, tendência de humor)
+        "Ana": (14, 5, [4, 4, 5, 4]), "Bruno": (14, 25, [4, 3, 3, 3]), "Camila": (14, 10, [4, 3, 2, 2]),
+        "Diego": (7, 3, [3, 4, 4, 5]), "Elisa": (21, 12, [5, 5, 4, 5]), "Felipe": (14, 30, [3, 3, 4, 3]),
+        "Gabriela": (14, 8, [4, 4, 4, 4]), "Henrique": (14, 16, [3, 3, 2, 3]), "Isabela": (14, 2, [4, 5, 4, 4]),
+    }
+    for m in membros:
+        if m.primeiro_nome not in perfis:
+            continue  # João: nunca teve 1:1
+        cad, desloc, humores = perfis[m.primeiro_nome]
+        db.add(ConfigUmAUm(membro_id=m.id, cadencia_dias=cad, pausado=False))
+        datas = [HOJE - timedelta(days=desloc + cad * i) for i in range(len(humores))][::-1]
+        for i, (d, h) in enumerate(zip(datas, humores)):
+            carga = 5 if m.primeiro_nome == "Camila" and i >= 2 else random.choice([2, 3, 3, 4])
+            r = Reuniao(membro_id=m.id, data=d, status="realizada", humor=h, carga=carga,
+                        pauta="- Prioridades da semana\n- Bloqueios", anotacoes=random.choice(ANOTACOES))
+            db.add(r)
+            db.flush()
+            total += 1
+            if random.random() < 0.6:
+                prazo = d + timedelta(days=random.choice([7, 14, 21]))
+                db.add(Acao(membro_id=m.id, reuniao_id=r.id, descricao=random.choice(ACOES),
+                            responsavel=random.choice(["membro", "membro", "gestor"]), prazo=prazo,
+                            concluida=i < len(humores) - 2, concluida_em=prazo if i < len(humores) - 2 else None))
+        if m.primeiro_nome in ("Diego", "Gabriela"):
+            prox = HOJE + timedelta(days=2)
+            prox += timedelta(days=(7 - prox.weekday()) % 7 if prox.weekday() >= 5 else 0)
+            db.add(Reuniao(membro_id=m.id, data=prox, status="agendada"))
+    ana, bruno, camila = membros[:3]
+    db.add_all([Topico(membro_id=camila.id, texto="Volume de demandas do fechamento", autor="gestor"),
+                Topico(membro_id=camila.id, texto="Quer conversar sobre férias", autor="membro"),
+                Topico(membro_id=bruno.id, texto="Feedback da apresentação para a diretoria", autor="gestor")])
+    return total
 
 
 def main():

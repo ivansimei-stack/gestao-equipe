@@ -1,0 +1,10 @@
+{% from "_macros.html" import sparkline %}
+{% set s = p.s %}{% set e = p.estados[s.estado] %}
+<p><span class="tag {{ e[1] }}">{{ e[0] }}{% if s.dias_atraso %} · {{ s.dias_atraso }}d{% endif %}</span>
+  Última: {{ s.ultima.data|data if s.ultima else '—' }} · Próxima: {{ s.proxima|data }} · a cada {{ s.cadencia }} dias</p>
+<p>Humor <span class="{{ 'txt-risco' if s.alerta_humor else 'txt-ok' }}">{{ sparkline(s.humores) }}</span>
+   &nbsp; Carga <span class="{{ 'txt-risco' if s.alerta_carga else 'txt-pri' }}">{{ sparkline(s.cargas) }}</span></p>
+{% if p.acoes %}<h4>Ações em aberto</h4>
+<ul>{% for a in p.acoes %}<li>{{ a.descricao }} <small class="suave">({{ a.responsavel_nome }}{% if a.prazo %}, {{ a.prazo|data('%d/%m') }}{% endif %})</small>{% if a.atrasada %} <span class="tag risco">atrasada</span>{% endif %}</li>{% endfor %}</ul>{% endif %}
+<p><a class="botao sec mini" href="/um_a_um/nova?membro_id={{ m.id }}">+ Registrar 1:1</a>
+   <a class="botao sec mini" href="/um_a_um/pessoa/{{ m.id }}">Histórico completo</a></p>

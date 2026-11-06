@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Ações combinadas</h1>
+{% include "um_a_um/_menu.html" %}
+<form class="filtros" method="get">
+  <select name="ver" onchange="this.form.submit()">
+    {% for v, r in [('abertas','Abertas'),('concluidas','Concluídas'),('todas','Todas')] %}<option value="{{ v }}" {{ 'selected' if v == ver }}>{{ r }}</option>{% endfor %}
+  </select>
+  <select name="responsavel" onchange="this.form.submit()">
+    <option value="">Qualquer responsável</option>
+    {% for k, v in responsaveis.items() %}<option value="{{ k }}" {{ 'selected' if k == responsavel }}>{{ v }}</option>{% endfor %}
+  </select>
+</form>
+{% set mostrar_pessoa = True %}{% set voltar = request.url.path ~ '?' ~ request.url.query %}
+{% include "um_a_um/_acoes_tabela.html" %}
+
+<details class="caixa">
+  <summary>Nova ação avulsa</summary>
+  <form method="post" action="/um_a_um/acoes" class="linha">
+    <select name="membro_id" required>{% for m in membros %}<option value="{{ m.id }}">{{ m.nome }}</option>{% endfor %}</select>
+    <input name="descricao" placeholder="Descrição" required size="40">
+    <select name="responsavel">{% for k, v in responsaveis.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select>
+    <input type="date" name="prazo">
+    <button>Criar</button>
+  </form>
+</details>
+{% endblock %}

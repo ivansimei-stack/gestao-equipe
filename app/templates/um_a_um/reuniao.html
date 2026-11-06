@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="topo">
+  <h1>1:1 com <a href="/um_a_um/pessoa/{{ r.membro_id }}">{{ r.membro.nome }}</a> — {{ r.data|data }}</h1>
+  <div class="acoes"><span class="tag {{ r.status_cor }}">{{ r.status_nome }}</span>
+    <a class="botao sec" href="/um_a_um/{{ r.id }}?editar=1">Editar</a></div>
+</div>
+{% include "um_a_um/_menu.html" %}
+{% if r.status == 'realizada' %}
+<dl class="ficha">
+  <div><dt>Humor</dt><dd>{{ r.humor_emoji }} {{ r.humor_nome }}{% if anterior and anterior.humor and r.humor %}
+    <small class="suave">(antes: {{ anterior.humor_emoji }})</small>{% endif %}</dd></div>
+  <div><dt>Carga</dt><dd>{{ r.carga_nome }}{% if anterior and anterior.carga %} <small class="suave">(antes: {{ anterior.carga_nome|lower }})</small>{% endif %}</dd></div>
+  {% if anterior %}<div><dt>1:1 anterior</dt><dd><a href="/um_a_um/{{ anterior.id }}">{{ anterior.data|data }}</a> ({{ (r.data - anterior.data).days }} dias antes)</dd></div>{% endif %}
+</dl>
+{% endif %}
+{% if r.pauta %}<section class="caixa"><h3>Pauta</h3><div class="pre">{{ r.pauta }}</div></section>{% endif %}
+{% if r.topicos %}<section class="caixa"><h3>Tópicos discutidos</h3><ul>{% for t in r.topicos %}<li>{{ t.texto }} <small class="suave">({{ t.autor_nome }})</small></li>{% endfor %}</ul></section>{% endif %}
+{% if r.anotacoes %}<section class="caixa"><h3>Anotações</h3><div class="pre">{{ r.anotacoes }}</div></section>{% endif %}
+{% if r.notas_privadas %}<details class="caixa"><summary>🔒 Notas privadas</summary><div class="pre">{{ r.notas_privadas }}</div></details>{% endif %}
+{% if r.acoes %}
+<h2>Ações combinadas nesta 1:1</h2>
+{% set acoes = r.acoes %}{% set mostrar_pessoa = False %}{% set voltar = request.url.path %}
+{% include "um_a_um/_acoes_tabela.html" %}
+{% endif %}
+<details class="perigo"><summary>Excluir reunião</summary>
+  <form method="post" action="/um_a_um/{{ r.id }}/excluir" onsubmit="return confirm('Excluir esta 1:1?')"><button class="perigo">Excluir</button></form>
+</details>
+{% endblock %}

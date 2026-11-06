@@ -12,9 +12,9 @@
 * { box-sizing: border-box; }
 body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--fundo); color:var(--texto); line-height:1.45; }
 a { color:var(--pri); }
-header { display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; align-items:center; justify-content:space-between;
+body > header { display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; align-items:center; justify-content:space-between;
          padding:.75rem 1.5rem; background:var(--card); border-bottom:1px solid var(--borda); position:sticky; top:0; z-index:5; }
-header a { color:var(--texto); text-decoration:none; }
+body > header a { color:var(--texto); text-decoration:none; }
 .marca { font-weight:700; }
 nav { display:flex; flex-wrap:wrap; gap:.25rem 1rem; }
 nav a { color:var(--suave); padding:.15rem 0; border-bottom:2px solid transparent; }
@@ -91,7 +91,7 @@ details.perigo { margin-top:2rem; color:var(--suave); } details.perigo summary {
 .pre { white-space:pre-wrap; }
 
 @media (max-width:700px) {
-  header { padding:.75rem 1rem; }
+  body > header { padding:.75rem 1rem; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
 }
 
@@ -123,3 +123,25 @@ table.calendario .fds, table.calendario .feriado { background:var(--fundo); }
 table.calendario th.feriado { color:var(--risco); } table.calendario th.hoje { background:var(--pri); color:#fff; }
 table.calendario .num-dia { font-weight:600; padding:.3rem 0; } table.calendario .num-dia.fds { color:var(--suave); font-weight:400; }
 table.calendario .critico { background:var(--risco-fundo); color:var(--risco); }
+
+/* 1:1s */
+.txt-risco { color:var(--risco); } .txt-ok { color:var(--ok); } .txt-pri { color:var(--pri); }
+svg.spark { vertical-align:middle; overflow:visible; }
+svg.grafico { width:100%; height:auto; overflow:visible; }
+svg.grafico .grade-linha { stroke:var(--borda); } svg.grafico .eixo { fill:var(--suave); font-size:13px; }
+button.check { width:1.4rem; height:1.4rem; padding:0; background:transparent; border:1.5px solid var(--suave); color:var(--ok); font-weight:700; line-height:1; }
+button.check.marcado { border-color:var(--ok); background:var(--ok-fundo); }
+.lista-limpa { list-style:none; padding:0 !important; } .lista-limpa li { display:flex; gap:.5rem; align-items:center; justify-content:space-between; padding:.25rem 0; border-bottom:1px dashed var(--borda); }
+.lista-limpa li form { margin:0; }
+fieldset { border:1px solid var(--borda); border-radius:8px; padding:.6rem .8rem; margin:0; }
+legend { font-size:.88rem; color:var(--suave); padding:0 .3rem; }
+fieldset label.check { display:flex; gap:.5rem; align-items:baseline; color:var(--texto); padding:.15rem 0; font-size:.95rem; }
+.escala { display:flex; flex-wrap:wrap; gap:.5rem; }
+.escala label { cursor:pointer; } .escala input { position:absolute; opacity:0; }
+.escala span { display:flex; flex-direction:column; align-items:center; min-width:5.5rem; padding:.4rem .5rem; border:1px solid var(--borda); border-radius:8px; font-size:1.3rem; color:var(--texto); }
+.escala span small { font-size:.72rem; color:var(--suave); }
+.escala input:checked + span { border-color:var(--pri); background:var(--pri-claro); }
+.escala input:focus-visible + span { outline:2px solid var(--pri); }
+.sugestoes p { display:flex; flex-wrap:wrap; gap:.35rem; } .sugestoes summary { cursor:pointer; color:var(--pri); }
+.linha-tempo .caixa header { padding:0; } .linha-tempo .caixa h3 { margin:0; }
+#novas-acoes .linha { margin-bottom:.4rem; }

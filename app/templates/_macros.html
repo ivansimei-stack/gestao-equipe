@@ -1,0 +1,40 @@
+{# Mini-gráfico de linha (valores numa escala fixa) #}
+{% macro sparkline(valores, minimo=1, maximo=5, w=84, h=22, classe='') -%}
+{% if valores|length >= 2 %}
+{% set passo = (w - 6) / (valores|length - 1) %}
+<svg class="spark {{ classe }}" width="{{ w }}" height="{{ h }}" viewBox="0 0 {{ w }} {{ h }}" role="img"
+     aria-label="Tendência: {{ valores|join(', ') }}">
+  <polyline fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
+    points="{% for v in valores %}{{ 3 + loop.index0 * passo }},{{ h - 3 - (v - minimo) / (maximo - minimo) * (h - 6) }} {% endfor %}"/>
+  {% set ult = valores[-1] %}
+  <circle cx="{{ w - 3 }}" cy="{{ h - 3 - (ult - minimo) / (maximo - minimo) * (h - 6) }}" r="2.4" fill="currentColor"/>
+</svg>
+{% elif valores %}<span class="suave">{{ valores[0] }}</span>{% else %}<span class="suave">—</span>{% endif %}
+{%- endmacro %}
+
+{# Gráfico de linhas com várias séries; series = [(rotulo, classe_cor, [valores])], rotulos_x = [...] #}
+{% macro grafico(series, rotulos_x, minimo=1, maximo=5, h=170, rotulos_y=None) -%}
+{% set w = 640 %}{% set esq = 92 %}{% set dir = 12 %}{% set topo = 10 %}{% set base = 26 %}
+{% set n = rotulos_x|length %}
+{% set passo = (w - esq - dir) / ((n - 1) if n > 1 else 1) %}
+<svg class="grafico" viewBox="0 0 {{ w }} {{ h }}" role="img" aria-label="Gráfico">
+  {% for v in range(minimo, maximo + 1) %}
+    {% set y = topo + (maximo - v) / (maximo - minimo) * (h - topo - base) %}
+    <line x1="{{ esq }}" x2="{{ w - dir }}" y1="{{ y }}" y2="{{ y }}" class="grade-linha"/>
+    <text x="{{ esq - 8 }}" y="{{ y + 4 }}" text-anchor="end" class="eixo">{{ rotulos_y[v] if rotulos_y else v }}</text>
+  {% endfor %}
+  {% for r in rotulos_x %}
+    <text x="{{ esq + loop.index0 * passo }}" y="{{ h - 6 }}" text-anchor="middle" class="eixo">{{ r }}</text>
+  {% endfor %}
+  {% for rotulo, cor, valores in series %}
+    <g class="{{ cor }}" style="color:var(--cor)">
+    <polyline fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
+      points="{% for v in valores %}{% if v %}{{ esq + loop.index0 * passo }},{{ topo + (maximo - v) / (maximo - minimo) * (h - topo - base) }} {% endif %}{% endfor %}"/>
+    {% for v in valores %}{% if v %}
+      <circle cx="{{ esq + loop.index0 * passo }}" cy="{{ topo + (maximo - v) / (maximo - minimo) * (h - topo - base) }}" r="3.5" fill="currentColor"><title>{{ rotulo }}: {{ v }}</title></circle>
+    {% endif %}{% endfor %}
+    </g>
+  {% endfor %}
+</svg>
+<p class="legenda">{% for rotulo, cor, valores in series %}<span><span class="ponto {{ cor }}"></span>{{ rotulo }}</span>{% endfor %}</p>
+{%- endmacro %}

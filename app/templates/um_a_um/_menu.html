@@ -1,0 +1,5 @@
+<nav class="submenu">
+  <a href="/um_a_um" class="{{ 'ativo' if request.url.path == '/um_a_um' }}">Visão geral</a>
+  <a href="/um_a_um/acoes" class="{{ 'ativo' if 'acoes' in request.url.path }}">Ações combinadas</a>
+  <a class="botao" href="/um_a_um/nova{{ '?membro_id=' ~ membro_menu if membro_menu }}">+ Registrar 1:1</a>
+</nav>

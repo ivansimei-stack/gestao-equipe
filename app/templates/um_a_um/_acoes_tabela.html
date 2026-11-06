@@ -1,0 +1,19 @@
+<table>
+  <thead><tr><th></th><th>Ação</th>{% if mostrar_pessoa %}<th>Pessoa</th>{% endif %}<th>Responsável</th><th>Prazo</th><th>Origem</th><th></th></tr></thead>
+  <tbody>
+  {% for a in acoes %}
+    <tr class="{{ 'inativo' if a.concluida }}">
+      <td><form method="post" action="/um_a_um/acoes/{{ a.id }}/alternar"><input type="hidden" name="voltar" value="{{ voltar }}">
+        <button class="check {{ 'marcado' if a.concluida }}" title="{{ 'Reabrir' if a.concluida else 'Concluir' }}">{{ '✓' if a.concluida else '' }}</button></form></td>
+      <td>{{ a.descricao }}</td>
+      {% if mostrar_pessoa %}<td><a href="/um_a_um/pessoa/{{ a.membro_id }}">{{ a.membro.nome }}</a></td>{% endif %}
+      <td>{{ a.responsavel_nome }}</td>
+      <td>{% if a.prazo %}<span class="{{ 'tag risco' if a.atrasada }}">{{ a.prazo|data('%d/%m/%y') }}</span>{% else %}—{% endif %}
+        {% if a.concluida_em %}<small class="suave">feito {{ a.concluida_em|data('%d/%m') }}</small>{% endif %}</td>
+      <td>{% if a.reuniao_id %}<a href="/um_a_um/{{ a.reuniao_id }}">1:1 {{ a.reuniao.data|data('%d/%m') }}</a>{% else %}—{% endif %}</td>
+      <td><form method="post" action="/um_a_um/acoes/{{ a.id }}/excluir" onsubmit="return confirm('Excluir ação?')">
+        <input type="hidden" name="voltar" value="{{ voltar }}"><button class="sec mini" title="Excluir">✕</button></form></td>
+    </tr>
+  {% else %}<tr><td colspan="7" class="vazio">Nenhuma ação.</td></tr>{% endfor %}
+  </tbody>
+</table>

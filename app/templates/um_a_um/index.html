@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import sparkline %}
+{% block titulo %}1:1s · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<h1>1:1s</h1>
+{% include "um_a_um/_menu.html" %}
+
+<table>
+  <thead><tr><th>Pessoa</th><th>Situação</th><th>Última</th><th>Próxima</th><th>Cadência</th>
+    <th>Humor</th><th>Carga</th><th class="num">Ações</th><th class="num">Tópicos</th><th></th></tr></thead>
+  <tbody>
+  {% for s in situacoes %}
+    {% set e = estados[s.estado] %}
+    <tr>
+      <td><a href="/um_a_um/pessoa/{{ s.membro.id }}">{{ s.membro.nome }}</a></td>
+      <td><span class="tag {{ e[1] }}">{{ e[0] }}{% if s.dias_atraso %} · {{ s.dias_atraso }}d{% endif %}</span></td>
+      <td>{% if s.ultima %}<a href="/um_a_um/{{ s.ultima.id }}">{{ s.ultima.data|data('%d/%m/%y') }}</a>{% else %}—{% endif %}</td>
+      <td>{{ s.proxima|data('%d/%m/%y') }}</td>
+      <td>{{ s.cadencia }} dias</td>
+      <td class="{{ 'txt-risco' if s.alerta_humor else 'txt-ok' }}" title="{{ 'Humor baixo ou em queda' if s.alerta_humor }}">{{ sparkline(s.humores) }}</td>
+      <td class="{{ 'txt-risco' if s.alerta_carga else 'txt-pri' }}" title="{{ 'Sobrecarga' if s.alerta_carga }}">{{ sparkline(s.cargas) }}</td>
+      <td class="num">{{ s.acoes_abertas or '—' }}{% if s.acoes_atrasadas %} <span class="tag risco">{{ s.acoes_atrasadas }} atras.</span>{% endif %}</td>
+      <td class="num">{{ s.topicos or '—' }}</td>
+      <td><a class="botao sec mini" href="/um_a_um/nova?membro_id={{ s.membro.id }}">Registrar</a></td>
+    </tr>
+  {% else %}<tr><td colspan="10" class="vazio">Cadastre pessoas na <a href="/equipe">equipe</a>.</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+<div class="duas-colunas">
+  <section class="caixa">
+    <h3>Agenda</h3>
+    <ul>{% for r in agenda %}<li><a href="/um_a_um/{{ r.id }}">{{ r.data|data('%d/%m') }} ({{ DIAS_SEMANA[r.data.weekday()] }})</a> — {{ r.membro.nome }}</li>
+    {% else %}<li class="suave">Nenhuma 1:1 agendada.</li>{% endfor %}</ul>
+  </section>
+  <section class="caixa">
+    <h3>Realizadas recentemente</h3>
+    <ul>{% for r in recentes %}<li><a href="/um_a_um/{{ r.id }}">{{ r.data|data('%d/%m') }}</a> — {{ r.membro.nome }} {{ r.humor_emoji }}</li>
+    {% else %}<li class="suave">Nenhuma ainda.</li>{% endfor %}</ul>
+  </section>
+</div>
+<p class="suave">Sinais de atenção: humor ≤ 2, queda de 2+ pontos em relação a duas reuniões atrás, ou carga “sobrecarregada”.</p>
+{% endblock %}

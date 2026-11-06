@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>{{ 'Editar 1:1 de ' ~ r.data|data if r else 'Registrar 1:1' }}</h1>
+{% include "um_a_um/_menu.html" %}
+<form class="formulario" method="post" action="{{ '/um_a_um/' ~ r.id if r else '/um_a_um/nova' }}">
+  <label>Pessoa
+    {% if r %}<input value="{{ r.membro.nome }}" disabled><input type="hidden" name="membro_id" value="{{ r.membro_id }}">
+    {% else %}
+    <select name="membro_id" required onchange="location='/um_a_um/nova?membro_id='+this.value">
+      <option value="">Selecione…</option>
+      {% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if membro_id == m.id }}>{{ m.nome }}</option>{% endfor %}
+    </select>{% endif %}</label>
+  <label>Data<input type="date" name="data" required value="{{ r.data if r else hoje() }}"></label>
+  <label>Status
+    <select name="status">{% for k, v in status_opcoes.items() %}<option value="{{ k }}" {{ 'selected' if (r.status if r else 'realizada') == k }}>{{ v[0] }}</option>{% endfor %}</select></label>
+
+  <fieldset class="escala largo"><legend>Como a pessoa está? (humor)</legend>
+    {% for k, v in humores.items() %}<label title="{{ v[0] }}"><input type="radio" name="humor" value="{{ k }}" {{ 'checked' if r and r.humor == k }}><span>{{ v[1] }}<small>{{ v[0] }}</small></span></label>{% endfor %}
+  </fieldset>
+  <fieldset class="escala largo"><legend>Carga de trabalho percebida</legend>
+    {% for k, v in cargas.items() %}<label><input type="radio" name="carga" value="{{ k }}" {{ 'checked' if r and r.carga == k }}><span>{{ k }}<small>{{ v }}</small></span></label>{% endfor %}
+  </fieldset>
+
+  {% if topicos %}
+  <fieldset class="largo"><legend>Tópicos anotados — marque os discutidos</legend>
+    {% for t in topicos %}<label class="check"><input type="checkbox" name="topico" value="{{ t.id }}" checked> {{ t.texto }} <small class="suave">({{ t.autor_nome }})</small></label>{% endfor %}
+  </fieldset>{% endif %}
+  {% if abertas %}
+  <fieldset class="largo"><legend>Ações em aberto — marque as concluídas</legend>
+    {% for a in abertas %}<label class="check"><input type="checkbox" name="concluir" value="{{ a.id }}"> {{ a.descricao }}
+      <small class="suave">({{ a.responsavel_nome }}{% if a.prazo %}, prazo {{ a.prazo|data('%d/%m') }}{% endif %})</small>
+      {% if a.atrasada %}<span class="tag risco">atrasada</span>{% endif %}</label>{% endfor %}
+  </fieldset>{% endif %}
+
+  <label class="largo">Pauta<textarea name="pauta" rows="5">{{ r.pauta or '' if r else pauta_inicial }}</textarea></label>
+  <details class="largo sugestoes"><summary>Perguntas sugeridas</summary>
+    <p>{% for c, p in sugestoes %}<button type="button" class="sec mini" onclick="addPauta(this.dataset.p)" data-p="{{ p }}">+ {{ p }}</button> {% endfor %}</p>
+    {% for c, ps in perguntas.items() %}<h4>{{ c }}</h4><p>{% for p in ps %}<button type="button" class="sec mini" onclick="addPauta(this.dataset.p)" data-p="{{ p }}">+ {{ p }}</button> {% endfor %}</p>{% endfor %}
+  </details>
+  <label class="largo">Anotações (o que foi conversado)<textarea name="anotacoes" rows="7">{{ r.anotacoes or '' if r }}</textarea></label>
+  <label class="largo">Notas privadas do gestor <small>(não exibidas no resumo)</small><textarea name="notas_privadas" rows="3">{{ r.notas_privadas or '' if r }}</textarea></label>
+
+  <fieldset class="largo" id="novas-acoes"><legend>Novas ações combinadas</legend>
+    {% for i in range(2) %}
+    <div class="linha acao-linha">
+      <input name="acao_descricao" placeholder="O que será feito" size="40">
+      <select name="acao_responsavel">{% for k, v in responsaveis.items() %}<option value="{{ k }}" {{ 'selected' if k == 'membro' }}>{{ v }}</option>{% endfor %}</select>
+      <input type="date" name="acao_prazo">
+    </div>
+    {% endfor %}
+    <button type="button" class="sec mini" onclick="maisAcao()">+ outra ação</button>
+  </fieldset>
+
+  <div class="acoes largo"><button>Salvar</button><a href="{{ '/um_a_um/' ~ r.id if r else '/um_a_um' }}">Cancelar</a></div>
+</form>
+<script>
+function addPauta(t) { const ta = document.querySelector('[name=pauta]'); ta.value += (ta.value && !ta.value.endsWith('\n') ? '\n' : '') + '- ' + t + '\n'; }
+function maisAcao() { const l = document.querySelector('.acao-linha'), n = l.cloneNode(true);
+  n.querySelectorAll('input').forEach(i => i.value = ''); l.parentNode.insertBefore(n, l.parentNode.lastElementChild); }
+</script>
+{% endblock %}

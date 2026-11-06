@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_macros.html" import grafico %}
+{% block conteudo %}
+{% set e = estados[s.estado] %}
+<div class="topo">
+  <h1>1:1s com <a href="/equipe/{{ m.id }}">{{ m.nome }}</a> <span class="tag {{ e[1] }}">{{ e[0] }}{% if s.dias_atraso %} · {{ s.dias_atraso }} dias{% endif %}</span></h1>
+</div>
+{% set membro_menu = m.id %}{% include "um_a_um/_menu.html" %}
+
+<dl class="ficha">
+  <div><dt>Última</dt><dd>{{ s.ultima.data|data if s.ultima else '—' }}</dd></div>
+  <div><dt>Próxima</dt><dd>{{ s.proxima|data }}</dd></div>
+  <div><dt>Total realizadas</dt><dd>{{ serie|length }}</dd></div>
+  <div><dt>Cadência</dt><dd>
+    <form method="post" action="/um_a_um/pessoa/{{ m.id }}/config" class="linha" style="margin:0">
+      <input type="number" name="cadencia_dias" min="1" max="120" value="{{ s.cadencia }}" style="width:4.5rem"> dias
+      <label><input type="checkbox" name="pausado" value="1" {{ 'checked' if s.pausado }}> pausar</label>
+      <button class="sec mini">Salvar</button>
+    </form></dd></div>
+</dl>
+
+<div class="duas-colunas">
+  <section class="caixa">
+    <h3>Tópicos para a próxima conversa</h3>
+    <ul class="lista-limpa">
+    {% for t in topicos %}
+      <li>{{ t.texto }} <small class="suave">· {{ t.autor_nome }}, {{ t.criado_em|data('%d/%m') }}</small>
+        <form method="post" action="/um_a_um/topicos/{{ t.id }}/excluir"><button class="sec mini" title="Remover">✕</button></form></li>
+    {% else %}<li class="suave">Nenhum tópico anotado.</li>{% endfor %}
+    </ul>
+    <form method="post" action="/um_a_um/pessoa/{{ m.id }}/topicos" class="linha">
+      <input name="texto" placeholder="Anotar assunto para a próxima 1:1" required size="30">
+      <select name="autor">{% for k, v in responsaveis.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select>
+      <button class="sec">Anotar</button>
+    </form>
+  </section>
+  <section class="caixa">
+    <h3>Humor e carga</h3>
+    {% if serie|length >= 2 %}
+      {{ grafico([('Humor', 'c2', serie|map(attribute='humor')|list), ('Carga', 'c3', serie|map(attribute='carga')|list)],
+                 serie|map(attribute='data')|map('data', '%d/%m')|list,
+                 rotulos_y={1:'1 baixo', 2:'2', 3:'3', 4:'4', 5:'5 alto'}) }}
+    {% else %}<p class="suave">Registre ao menos duas 1:1s com humor/carga para ver a tendência.</p>{% endif %}
+  </section>
+</div>
+
+<h2>Ações</h2>
+{% set mostrar_pessoa = False %}{% set voltar = request.url.path %}
+{% include "um_a_um/_acoes_tabela.html" %}
+
+<h2>Histórico</h2>
+<div class="linha-tempo">
+{% for r in reunioes %}
+  <article class="caixa">
+    <header class="topo">
+      <h3><a href="/um_a_um/{{ r.id }}">{{ r.data|data }}</a> {{ r.humor_emoji }}</h3>
+      <span class="tag {{ r.status_cor }}">{{ r.status_nome }}</span>
+    </header>
+    {% if r.status == 'realizada' %}<p class="suave">Humor: {{ r.humor_nome }} · Carga: {{ r.carga_nome }}</p>{% endif %}
+    {% if r.anotacoes %}<div class="pre">{{ r.anotacoes|truncate(400) }}</div>{% elif r.pauta %}<div class="pre suave">{{ r.pauta|truncate(300) }}</div>{% endif %}
+  </article>
+{% else %}<p class="suave">Nenhuma 1:1 registrada ainda.</p>{% endfor %}
+</div>
+{% endblock %}
