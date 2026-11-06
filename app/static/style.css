@@ -145,3 +145,24 @@ fieldset label.check { display:flex; gap:.5rem; align-items:baseline; color:var(
 .sugestoes p { display:flex; flex-wrap:wrap; gap:.35rem; } .sugestoes summary { cursor:pointer; color:var(--pri); }
 .linha-tempo .caixa header { padding:0; } .linha-tempo .caixa h3 { margin:0; }
 #novas-acoes .linha { margin-bottom:.4rem; }
+
+/* OKRs */
+.resumo-ciclo { display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between; align-items:flex-end; }
+.resumo-ciclo > div:first-child { flex:1 1 420px; } .resumo-ciclo h2 { margin:0 0 .6rem; }
+.linha-metrica { display:grid; grid-template-columns:5.5rem 1fr 3.5rem; align-items:center; gap:.6rem; margin:.35rem 0; }
+.linha-metrica strong { text-align:right; }
+.contagem { display:flex; flex-wrap:wrap; gap:.35rem; }
+.barra-okr { position:relative; } .barra-okr .esperado { position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--texto); opacity:.55; border-radius:1px; }
+.objetivo header { display:flex; align-items:flex-start; } .objetivo h3 { margin:0; } .objetivo header p { margin:.25rem 0 0; }
+table.krs { border:none; margin-top:.6rem; } table.krs td { padding:.5rem .4rem; }
+.kr-desc { width:42%; } .kr-desc small { display:block; } .kr-valores { white-space:nowrap; } .kr-barra { width:18%; min-width:110px; }
+.d-block { display:block; }
+.checkin-rapido summary { list-style:none; } .checkin-rapido summary::-webkit-details-marker { display:none; }
+.checkin-rapido[open] form { position:absolute; right:1rem; margin-top:.4rem; background:var(--card); border:1px solid var(--borda); border-radius:8px; padding:.6rem; box-shadow:0 6px 20px rgba(0,0,0,.12); z-index:3; }
+.grade-campos { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:.7rem; }
+.grade-campos label { display:flex; flex-direction:column; gap:.3rem; font-size:.88rem; color:var(--suave); }
+.grade-campos label.largo { grid-column:1/-1; }
+svg .linha-real { stroke:var(--c1); stroke-width:2.5; } svg .ponto-real { fill:var(--c1); }
+svg .linha-ideal { stroke:var(--c6); stroke-width:1.5; stroke-dasharray:6 5; }
+svg .linha-hoje { stroke:var(--suave); stroke-dasharray:2 3; }
+.objetivo td { position:relative; }

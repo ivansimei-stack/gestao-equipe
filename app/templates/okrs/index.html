@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block titulo %}OKRs · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<h1>Metas e OKRs</h1>
+{% include "okrs/_menu.html" %}
+
+{% if not c %}
+<section class="caixa"><p>Nenhum ciclo criado ainda. <a href="/okrs/ciclos">Crie o primeiro ciclo</a> (ex.: um trimestre) para começar.</p></section>
+{% else %}
+<form class="filtros" method="get">
+  <select name="ciclo" onchange="this.form.submit()">
+    {% for x in ciclos %}<option value="{{ x.id }}" {{ 'selected' if x.id == c.id }}>{{ x.nome }}{{ ' (arquivado)' if x.arquivado }}</option>{% endfor %}
+  </select>
+  <select name="dono" onchange="this.form.submit()">
+    <option value="">Todos os objetivos</option>
+    <option value="equipe" {{ 'selected' if dono == 'equipe' }}>Só objetivos da equipe</option>
+    {% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if dono == m.id|string }}>{{ m.nome }}</option>{% endfor %}
+  </select>
+</form>
+
+<section class="caixa resumo-ciclo">
+  <div>
+    <h2>{{ c.nome }} <small>{{ c.inicio|data }} a {{ c.fim|data }} · {{ resumo.dias_restantes }} dias restantes</small></h2>
+    <div class="linha-metrica"><span>Progresso</span>
+      {% with prog = resumo.progresso, esperado = resumo.tempo, st = 'no_prazo' if resumo.progresso >= resumo.tempo - 0.1 else ('atencao' if resumo.progresso >= resumo.tempo - 0.25 else 'em_risco') %}{% include "okrs/_barra.html" %}{% endwith %}
+      <strong>{{ resumo.progresso|pct }}</strong></div>
+    <div class="linha-metrica"><span>Tempo</span><div class="barra"><span style="width:{{ resumo.tempo * 100 }}%;background:var(--suave)"></span></div><strong>{{ resumo.tempo|pct }}</strong></div>
+  </div>
+  <div class="contagem">
+    {% for s, n in resumo.contagem.items() if n %}<span class="tag {{ status_nomes[s][1] }}">{{ n }} {{ status_nomes[s][0]|lower }}</span>{% endfor %}
+  </div>
+</section>
+
+{% for o in objetivos %}
+{% set st_o = sv.status_objetivo(o) %}
+<section class="caixa objetivo">
+  <header class="topo">
+    <div>
+      <h3><a href="/okrs/objetivos/{{ o.id }}">{{ o.titulo }}</a></h3>
+      <span class="suave">{{ o.dono.nome if o.dono else 'Equipe' }}</span>
+      {% if o.descricao %}<p class="suave">{{ o.descricao }}</p>{% endif %}
+    </div>
+    <div class="acoes"><span class="tag {{ status_nomes[st_o][1] }}">{{ status_nomes[st_o][0] }}</span><strong>{{ sv.progresso_objetivo(o)|pct }}</strong></div>
+  </header>
+  <table class="krs">
+    <tbody>
+    {% for k in o.krs %}
+      {% set st = sv.status_kr(k) %}{% set ult = sv.ultimo_checkin(k) %}{% set proj = sv.projecao_kr(k) %}
+      <tr>
+        <td class="kr-desc"><a href="/okrs/krs/{{ k.id }}">{{ k.descricao }}</a>
+          <small class="suave">{{ k.responsavel.primeiro_nome if k.responsavel else '' }}{% if ult %} · check-in {{ ult.data|data('%d/%m') }}{% if ult.confianca %} · confiança {{ ult.confianca }}/10{% endif %}{% else %} · sem check-in{% endif %}</small></td>
+        <td class="kr-valores">{{ k.formatar(k.valor_atual) }} <small class="suave">de {{ k.formatar(k.valor_alvo) }}</small>
+          {% if proj is not none %}<small class="suave d-block">projeção: {{ k.formatar(proj|round(2)) }}</small>{% endif %}</td>
+        <td class="kr-barra">{% with prog = sv.progresso_kr(k), esperado = sv.fracao_tempo(c) %}{% include "okrs/_barra.html" %}{% endwith %}</td>
+        <td><span class="tag {{ status_nomes[st][1] }}">{{ status_nomes[st][0] }}</span></td>
+        <td>
+          <details class="checkin-rapido"><summary class="botao sec mini">Check-in</summary>
+            <form method="post" action="/okrs/krs/{{ k.id }}/checkin" class="linha">
+              <input type="hidden" name="voltar" value="/okrs?ciclo={{ c.id }}">
+              {% if k.tipo == 'binario' %}
+                <select name="valor"><option value="0">Não</option><option value="1" {{ 'selected' if k.valor_atual >= 1 }}>Sim</option></select>
+              {% else %}<input name="valor" inputmode="decimal" required placeholder="Valor atual" value="{{ k.valor_atual|num(2) }}" size="8">{% endif %}
+              <select name="confianca" title="Confiança de atingir (1–10)"><option value="">Confiança</option>{% for i in range(10, 0, -1) %}<option>{{ i }}</option>{% endfor %}</select>
+              <input name="comentario" placeholder="Comentário" size="18">
+              <button class="mini">Salvar</button>
+            </form>
+          </details>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td class="vazio">Sem resultados-chave. <a href="/okrs/objetivos/{{ o.id }}">Adicionar</a></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% else %}
+<section class="caixa"><p class="suave">Nenhum objetivo neste ciclo{{ ' com esse filtro' if dono }}. <a href="/okrs/ciclos/{{ c.id }}/objetivo">Criar objetivo</a>.</p></section>
+{% endfor %}
+
+{% if resumo.sem_checkin %}
+<section class="caixa"><h3>Sem check-in há mais de {{ sv.DIAS_SEM_CHECKIN_ALERTA }} dias</h3>
+  <ul>{% for k in resumo.sem_checkin %}<li><a href="/okrs/krs/{{ k.id }}">{{ k.descricao }}</a> <small class="suave">{{ k.responsavel.nome if k.responsavel else '' }}</small></li>{% endfor %}</ul>
+</section>{% endif %}
+<p class="suave">A marca vertical em cada barra indica onde o KR deveria estar, proporcional ao tempo decorrido do ciclo.
+  Status: no ritmo (até 10 p.p. abaixo do esperado), atenção (até 25 p.p.), em risco (abaixo disso ou confiança ≤ 4).</p>
+{% endif %}
+{% endblock %}

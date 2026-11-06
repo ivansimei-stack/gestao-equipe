@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block conteudo %}
+{% set c = k.objetivo.ciclo %}{% set st = sv.status_kr(k) %}{% set proj = sv.projecao_kr(k) %}
+<div class="topo">
+  <h1>{{ k.descricao }}</h1>
+  <span class="tag {{ status_nomes[st][1] }}">{{ status_nomes[st][0] }}</span>
+</div>
+<p class="suave">Objetivo: <a href="/okrs/objetivos/{{ k.objetivo.id }}">{{ k.objetivo.titulo }}</a> · <a href="/okrs?ciclo={{ c.id }}">{{ c.nome }}</a></p>
+{% include "okrs/_menu.html" %}
+
+<dl class="ficha">
+  <div><dt>Atual</dt><dd><strong>{{ k.formatar(k.valor_atual) }}</strong></dd></div>
+  <div><dt>Inicial → Alvo</dt><dd>{{ k.formatar(k.valor_inicial) }} → {{ k.formatar(k.valor_alvo) }}</dd></div>
+  <div><dt>Progresso</dt><dd>{{ sv.progresso_kr(k)|pct }} <small class="suave">(esperado {{ sv.fracao_tempo(c)|pct }})</small></dd></div>
+  <div><dt>Projeção no fim do ciclo</dt><dd>{{ k.formatar(proj|round(2)) if proj is not none else '—' }}</dd></div>
+  <div><dt>Responsável</dt><dd>{{ k.responsavel.nome if k.responsavel else '—' }}</dd></div>
+</dl>
+
+{% if k.tipo != 'binario' %}
+<section class="caixa">
+  <h3>Evolução</h3>
+  <svg class="grafico" viewBox="0 0 {{ g.w }} {{ g.h }}" role="img" aria-label="Evolução do resultado-chave">
+    {% for t in g.ticks_y %}<line x1="{{ g.esq }}" x2="{{ g.w - g.dir }}" y1="{{ t.y }}" y2="{{ t.y }}" class="grade-linha"/>
+      <text x="{{ g.esq - 8 }}" y="{{ t.y + 4 }}" text-anchor="end" class="eixo">{{ t.rotulo }}</text>{% endfor %}
+    {% for m in g.meses %}<text x="{{ m.x }}" y="{{ g.h - 6 }}" text-anchor="middle" class="eixo">{{ m.rotulo }}</text>{% endfor %}
+    {% if g.hoje_x %}<line x1="{{ g.hoje_x }}" x2="{{ g.hoje_x }}" y1="{{ g.topo }}" y2="{{ g.h - g.base }}" class="linha-hoje"/>
+      <text x="{{ g.hoje_x + 4 }}" y="{{ g.topo + 10 }}" class="eixo">hoje</text>{% endif %}
+    <polyline points="{{ g.ideal }}" class="linha-ideal" fill="none"/>
+    <polyline points="{{ g.real }}" fill="none" class="linha-real"/>
+    {% for p in g.pontos %}<circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" class="ponto-real"><title>{{ p.rotulo }}</title></circle>{% endfor %}
+  </svg>
+  <p class="legenda"><span><span class="ponto c1"></span>Realizado</span><span><span class="ponto c6"></span>Ritmo ideal (tracejado)</span></p>
+</section>
+{% endif %}
+
+<section class="caixa">
+  <h3>Novo check-in</h3>
+  <form method="post" action="/okrs/krs/{{ k.id }}/checkin" class="linha">
+    {% if k.tipo == 'binario' %}<select name="valor"><option value="0">Não</option><option value="1">Sim</option></select>
+    {% else %}<input name="valor" inputmode="decimal" required placeholder="Valor atual" size="10">{% endif %}
+    <input type="date" name="data" value="{{ hoje() }}">
+    <select name="confianca"><option value="">Confiança (1–10)</option>{% for i in range(10, 0, -1) %}<option>{{ i }}</option>{% endfor %}</select>
+    <input name="comentario" placeholder="O que mudou? Algum bloqueio?" size="35">
+    <button>Registrar</button>
+  </form>
+  <table>
+    <thead><tr><th>Data</th><th class="num">Valor</th><th class="num">Confiança</th><th>Comentário</th><th></th></tr></thead>
+    <tbody>
+    {% for ch in k.checkins|reverse %}
+      <tr><td>{{ ch.data|data }}</td><td class="num">{{ k.formatar(ch.valor) }}</td>
+        <td class="num">{% if ch.confianca %}<span class="tag {{ 'risco' if ch.confianca <= 4 else ('alerta' if ch.confianca <= 6 else 'ok') }}">{{ ch.confianca }}/10</span>{% else %}—{% endif %}</td>
+        <td>{{ ch.comentario or '' }}</td>
+        <td><form method="post" action="/okrs/checkins/{{ ch.id }}/excluir" onsubmit="return confirm('Remover check-in?')"><button class="sec mini">✕</button></form></td></tr>
+    {% else %}<tr><td colspan="5" class="vazio">Nenhum check-in ainda.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<details class="caixa"><summary>Editar resultado-chave</summary>
+  <form class="formulario" method="post" action="/okrs/krs/{{ k.id }}">
+    {% with p = '' %}{% include "okrs/_kr_campos.html" %}{% endwith %}
+    <div class="acoes largo"><button>Salvar</button></div>
+  </form>
+</details>
+<details class="perigo"><summary>Excluir resultado-chave</summary>
+  <form method="post" action="/okrs/krs/{{ k.id }}/excluir" onsubmit="return confirm('Excluir?')"><button class="perigo">Excluir</button></form>
+</details>
+{% endblock %}

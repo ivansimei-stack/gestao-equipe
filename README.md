@@ -72,6 +72,13 @@ todas as ferramentas, aniversários e tempo de casa.
 - **Ações combinadas** com responsável e prazo; as abertas são revisadas na reunião seguinte
 - Notas privadas do gestor e banco de perguntas sugeridas
 
+### Metas e OKRs (`/okrs`)
+- Ciclos (ex.: trimestres) com objetivos da equipe ou individuais
+- KRs numéricos, percentuais, em R$ ou sim/não — inclusive metas de **redução** (alvo menor que o inicial)
+- **Check-ins** com confiança (1–10); status automático comparando progresso × tempo decorrido
+  (no ritmo / atenção / em risco), **projeção** de fechamento e gráfico realizado × ritmo ideal
+- Alerta de KRs sem check-in há mais de 14 dias; **duplicação de ciclo** partindo dos valores atuais
+
 ## Próximas ferramentas
 
 - **Férias e ausências** — calendário e conflitos de cobertura

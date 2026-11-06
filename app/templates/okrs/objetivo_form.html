@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>{{ 'Objetivo' if o else 'Novo objetivo' }} <small>{{ c.nome }}</small></h1>
+{% include "okrs/_menu.html" %}
+<form class="formulario" method="post" action="{{ '/okrs/objetivos/' ~ o.id if o else '/okrs/ciclos/' ~ c.id ~ '/objetivo' }}">
+  <label class="largo">Objetivo (qualitativo e inspirador)<input name="titulo" required maxlength="200" value="{{ o.titulo if o }}" placeholder="Ex.: Encantar nossos clientes internos"></label>
+  <label class="largo">Por que importa<textarea name="descricao" rows="2">{{ o.descricao or '' if o }}</textarea></label>
+  <label>Dono<select name="dono_id"><option value="">Equipe</option>
+    {% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if o and o.dono_id == m.id }}>{{ m.nome }}</option>{% endfor %}</select></label>
+  {% if o %}<label>Ordem<input type="number" name="ordem" value="{{ o.ordem }}"></label>{% endif %}
+  {% if not o %}
+    <input type="hidden" name="n_krs" value="3">
+    {% for i in range(3) %}
+    <fieldset class="largo grade-campos"><legend>Resultado-chave {{ i + 1 }}{{ ' (opcional)' if i }}</legend>
+      {% with p = 'kr' ~ i ~ '_', k = None %}{% include "okrs/_kr_campos.html" %}{% endwith %}
+    </fieldset>
+    {% endfor %}
+  {% endif %}
+  <div class="acoes largo"><button>Salvar</button><a href="/okrs?ciclo={{ c.id }}">Cancelar</a></div>
+</form>
+
+{% if o %}
+<h2>Resultados-chave</h2>
+<ul>{% for k in o.krs %}<li><a href="/okrs/krs/{{ k.id }}">{{ k.descricao }}</a> — {{ k.formatar(k.valor_atual) }} de {{ k.formatar(k.valor_alvo) }}</li>{% else %}<li class="suave">Nenhum.</li>{% endfor %}</ul>
+<details class="caixa" {{ 'open' if not o.krs }}><summary>+ Adicionar resultado-chave</summary>
+  <form class="formulario" method="post" action="/okrs/objetivos/{{ o.id }}/kr">
+    {% with p = '', k = None %}{% include "okrs/_kr_campos.html" %}{% endwith %}
+    <div class="acoes largo"><button>Adicionar</button></div>
+  </form>
+</details>
+<details class="perigo"><summary>Excluir objetivo</summary>
+  <form method="post" action="/okrs/objetivos/{{ o.id }}/excluir" onsubmit="return confirm('Excluir objetivo e todos os KRs?')"><button class="perigo">Excluir</button></form>
+</details>
+{% endif %}
+{% endblock %}

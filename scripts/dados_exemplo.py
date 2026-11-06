@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.database import Base, SessionLocal, criar_tabelas, engine  # noqa: E402
 from app.ferramentas.ausencias.models import Ausencia, RegraCobertura  # noqa: E402
 from app.ferramentas.equipe.models import Membro  # noqa: E402
+from app.ferramentas.okrs.models import Checkin, Ciclo, Objetivo, ResultadoChave  # noqa: E402
 from app.ferramentas.um_a_um.models import Acao, ConfigUmAUm, Reuniao, Topico  # noqa: E402
 
 random.seed(42)
@@ -93,8 +94,9 @@ def criar(db):
     ]
     db.add_all(a)
     n_reunioes = criar_um_a_um(db, membros)
+    n_krs = criar_okrs(db, membros)
     db.commit()
-    print(f"{len(membros)} membros, {len(a)} ausências e {n_reunioes} 1:1s criados.")
+    print(f"{len(membros)} membros, {len(a)} ausências, {n_reunioes} 1:1s e {n_krs} KRs criados.")
 
 
 ANOTACOES = [
@@ -154,6 +156,64 @@ def main():
         if db.query(Membro).count() and "--limpar" not in sys.argv:
             sys.exit("O banco já tem dados. Use --limpar para recriar (apaga tudo!).")
         criar(db)
+
+
+
+def criar_okrs(db, membros):
+    from app.util import somar_meses
+    ana, bruno, camila, diego, elisa, felipe, gabi, henrique, isabela, joao = membros
+    tri = (HOJE.month - 1) // 3
+    ini = date(HOJE.year, tri * 3 + 1, 1)
+    fim = somar_meses(ini, 3) - timedelta(days=1)
+    ant_ini = somar_meses(ini, -3)
+    anterior = Ciclo(nome=f"{ant_ini.year} T{(ant_ini.month - 1) // 3 + 1}", inicio=ant_ini, fim=ini - timedelta(days=1),
+                     arquivado=False)
+    atual = Ciclo(nome=f"{ini.year} T{tri + 1}", inicio=ini, fim=fim)
+    # (objetivo, dono, [(kr, tipo, inicial, alvo, unidade, responsável, fração atingida, confiança)])
+    plano = [
+        ("Encantar nossos clientes internos", None, [
+            ("Aumentar o NPS interno", "numero", 32, 60, "pontos", ana, 0.55, 7),
+            ("Reduzir o tempo médio de resposta", "numero", 48, 24, "horas", henrique, 0.35, 5),
+            ("Publicar a central de autoatendimento", "binario", 0, 1, None, isabela, 0, 6),
+        ]),
+        ("Automatizar a rotina operacional", bruno, [
+            ("Processos automatizados", "numero", 2, 10, "processos", bruno, 0.62, 8),
+            ("Horas manuais economizadas por mês", "numero", 0, 120, "h", camila, 0.2, 3),
+        ]),
+        ("Decidir com dados", elisa, [
+            ("Painéis em produção no Qlik", "numero", 3, 8, "painéis", felipe, 0.6, 8),
+            ("Cobertura de qualidade de dados", "percentual", 60, 95, None, gabi, 0.5, 7),
+            ("Economia gerada por análises", "moeda", 0, 50000, None, elisa, 0.48, 6),
+        ]),
+    ]
+    n = 0
+    for c, fator in ((anterior, 1.0), (atual, 1.0)):
+        for i, (titulo, dono, krs) in enumerate(plano):
+            o = Objetivo(titulo=titulo, dono=dono, ordem=i, ciclo=c)
+            for desc, tipo, v0, alvo, un, resp, frac, conf in krs:
+                k = ResultadoChave(descricao=desc, tipo=tipo, valor_inicial=v0, valor_alvo=alvo, unidade=un,
+                                   responsavel=resp, valor_atual=v0, objetivo=o)
+                n += 1
+                if c is anterior:
+                    frac, conf = random.choice([0.7, 0.85, 1.0, 1.0]), None
+                hoje_ref = min(HOJE, c.fim)
+                dias = (hoje_ref - c.inicio).days
+                pontos = max(1, dias // 14)
+                for j in range(1, pontos + 1):
+                    d = c.inicio + timedelta(days=j * 14)
+                    if d > hoje_ref:
+                        break
+                    if tipo == "binario":
+                        v = 1 if (c is anterior and frac >= 1 and j == pontos) else 0
+                    else:
+                        ruido = random.uniform(-0.05, 0.05) if j < pontos else 0
+                        v = round(v0 + (alvo - v0) * max(0, min(1, frac * j / pontos + ruido)), 1)
+                    k.checkins.append(Checkin(data=d, valor=v, confianca=conf if j == pontos else random.randint(6, 9),
+                                              comentario="Atualização quinzenal" if j < pontos else None))
+                    k.valor_atual = v
+            db.add(o)
+    db.add_all([anterior, atual])
+    return n
 
 
 if __name__ == "__main__":

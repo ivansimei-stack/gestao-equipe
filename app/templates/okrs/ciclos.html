@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Ciclos de OKR</h1>
+{% set c = None %}{% include "okrs/_menu.html" %}
+<table>
+  <thead><tr><th>Ciclo</th><th>Período</th><th class="num">Objetivos</th><th>Progresso</th><th></th></tr></thead>
+  <tbody>
+  {% for x in ciclos %}
+    <tr class="{{ 'inativo' if x.arquivado }}">
+      <td><a href="/okrs?ciclo={{ x.id }}">{{ x.nome }}</a> {% if x.arquivado %}<span class="tag">Arquivado</span>{% endif %}</td>
+      <td>{{ x.inicio|data }} – {{ x.fim|data }}</td>
+      <td class="num">{{ x.objetivos|length }}</td>
+      <td>{{ sv.progresso_ciclo(x)|pct }}</td>
+      <td><details><summary class="botao sec mini">Editar</summary>
+        <form method="post" action="/okrs/ciclos/{{ x.id }}" class="linha">
+          <input name="nome" value="{{ x.nome }}" required size="12"><input type="date" name="inicio" value="{{ x.inicio }}">
+          <input type="date" name="fim" value="{{ x.fim }}">
+          <label><input type="checkbox" name="arquivado" value="1" {{ 'checked' if x.arquivado }}> arquivado</label>
+          <button class="mini">Salvar</button></form>
+        <form method="post" action="/okrs/ciclos/{{ x.id }}/excluir" onsubmit="return confirm('Excluir o ciclo e todos os objetivos?')"><button class="perigo mini">Excluir ciclo</button></form>
+      </details></td>
+    </tr>
+  {% else %}<tr><td colspan="5" class="vazio">Nenhum ciclo.</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+<h2>Novo ciclo</h2>
+<form class="formulario" method="post" action="/okrs/ciclos">
+  <label>Nome<input name="nome" required value="{{ sugestao.nome }}"></label>
+  <label>Início<input type="date" name="inicio" required value="{{ sugestao.inicio }}"></label>
+  <label>Fim<input type="date" name="fim" required value="{{ sugestao.fim }}"></label>
+  <label>Copiar objetivos e KRs de<select name="copiar_de"><option value="">— começar vazio —</option>
+    {% for x in ciclos %}<option value="{{ x.id }}">{{ x.nome }}</option>{% endfor %}</select></label>
+  <label class="check largo"><input type="checkbox" name="partir_do_atual" value="1" checked> Ao copiar, usar o valor atual de cada KR como novo ponto de partida</label>
+  <div class="acoes largo"><button>Criar ciclo</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% set sv = p.sv %}
+<p class="suave">Ciclo {{ p.c.nome }}</p>
+{% if p.objetivos %}<h4>Objetivos que lidera</h4>
+<ul>{% for o in p.objetivos %}<li><a href="/okrs/objetivos/{{ o.id }}">{{ o.titulo }}</a> — {{ sv.progresso_objetivo(o)|pct }}</li>{% endfor %}</ul>{% endif %}
+{% if p.krs %}<h4>Resultados-chave</h4>
+<ul>{% for k in p.krs %}{% set st = sv.status_kr(k) %}<li><a href="/okrs/krs/{{ k.id }}">{{ k.descricao }}</a> — {{ k.formatar(k.valor_atual) }} de {{ k.formatar(k.valor_alvo) }}
+  <span class="tag {{ sv.STATUS[st][1] }}">{{ sv.STATUS[st][0] }}</span></li>{% endfor %}</ul>{% endif %}

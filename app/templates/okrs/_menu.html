@@ -1,0 +1,5 @@
+<nav class="submenu">
+  <a href="/okrs" class="{{ 'ativo' if request.url.path == '/okrs' }}">Painel do ciclo</a>
+  <a href="/okrs/ciclos" class="{{ 'ativo' if 'ciclos' in request.url.path and 'objetivo' not in request.url.path }}">Ciclos</a>
+  {% if c %}<a class="botao" href="/okrs/ciclos/{{ c.id }}/objetivo">+ Novo objetivo</a>{% endif %}
+</nav>

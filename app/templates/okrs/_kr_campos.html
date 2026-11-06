@@ -1,0 +1,8 @@
+{# prefixo p, kr k (ou None) #}
+<label class="largo">Resultado-chave<input name="{{ p }}descricao" value="{{ k.descricao if k }}" placeholder="Ex.: Reduzir o tempo médio de resposta de 48h para 24h" {{ 'required' if k }}></label>
+<label>Tipo<select name="{{ p }}tipo">{% for t, n in tipos.items() %}<option value="{{ t }}" {{ 'selected' if k and k.tipo == t }}>{{ n }}</option>{% endfor %}</select></label>
+<label>Valor inicial<input name="{{ p }}valor_inicial" type="number" step="any" value="{{ k.valor_inicial if k else 0 }}"></label>
+<label>Valor alvo<input name="{{ p }}valor_alvo" type="number" step="any" value="{{ k.valor_alvo if k else '' }}" placeholder="menor que o inicial = meta de redução"></label>
+<label>Unidade<input name="{{ p }}unidade" value="{{ k.unidade or '' if k }}" placeholder="horas, clientes, …"></label>
+<label>Responsável<select name="{{ p }}responsavel_id"><option value="">—</option>
+  {% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if k and k.responsavel_id == m.id }}>{{ m.nome }}</option>{% endfor %}</select></label>
