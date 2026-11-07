@@ -1,0 +1,15 @@
+{# grade: dict (pot, des) -> lista de Resultado; destaque: (pot, des) opcional #}
+<div class="ninebox">
+  <div class="eixo-y">Potencial →</div>
+  <div class="caixas">
+  {% for pot in [3, 2, 1] %}{% for des in [1, 2, 3] %}
+    {% set info = nine_box[(pot, des)] %}
+    <div class="caixa9 {{ info[2] }} {{ 'destaque' if destaque == (pot, des) }}" title="{{ info[1] }}">
+      <strong>{{ info[0] }}</strong>
+      {% if grade is defined and grade %}<div class="nomes">{% for r in grade[(pot, des)] %}<a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ r.membro.id }}">{{ r.membro.primeiro_nome }}</a>{% endfor %}</div>
+        <span class="qtd">{{ grade[(pot, des)]|length or '' }}</span>{% endif %}
+    </div>
+  {% endfor %}{% endfor %}
+  </div>
+  <div class="eixo-x">Desempenho →</div>
+</div>

@@ -29,7 +29,11 @@ def _num(v, casas=1):
     return f"{v:,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-env.filters.update(data=_data, pct=_pct, num=_num)
+def _nota(v):
+    return "—" if v is None else f"{v:.2f}".replace(".", ",")
+
+
+env.filters.update(data=_data, pct=_pct, num=_num, nota=_nota)
 
 
 def redirecionar(url: str, msg: str | None = None, erro: str | None = None) -> RedirectResponse:

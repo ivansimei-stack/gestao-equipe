@@ -87,6 +87,14 @@ todas as ferramentas, aniversários e tempo de casa.
 - Alerta de **conflito** quando uma ausência é registrada depois da escala gerada
 - Quadro de **equilíbrio** (turnos e dias por pessoa vs. média) e exportação iCal
 
+### Avaliações (`/avaliacoes`)
+- Ciclos com **critérios e pesos** configuráveis (modelo padrão com 6 critérios) e prazo de preenchimento
+- **Autoavaliação × avaliação do gestor** lado a lado, com destaque de divergências ≥ 2 pontos
+- **Nine-box** (desempenho × potencial), calibração com ranking e distribuição, exportação CSV
+- **Feedback contínuo** (modelo SCI) que aparece como evidência na hora de avaliar;
+  alerta de pessoas sem feedback há 45+ dias
+- **PDI** no modelo 70-20-10 com prazos; resultado individual pronto para imprimir/PDF
+
 ## Próximas ferramentas
 
 - **Férias e ausências** — calendário e conflitos de cobertura

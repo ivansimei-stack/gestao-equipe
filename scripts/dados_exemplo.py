@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.database import Base, SessionLocal, criar_tabelas, engine  # noqa: E402
 from app.ferramentas.ausencias.models import Ausencia, RegraCobertura  # noqa: E402
 from app.ferramentas.equipe.models import Membro  # noqa: E402
+from app.ferramentas.avaliacoes.models import Feedback, ItemPDI  # noqa: E402
 from app.ferramentas.escalas.models import Escala, Participante  # noqa: E402
 from app.ferramentas.okrs.models import Checkin, Ciclo, Objetivo, ResultadoChave  # noqa: E402
 from app.ferramentas.um_a_um.models import Acao, ConfigUmAUm, Reuniao, Topico  # noqa: E402
@@ -98,7 +99,9 @@ def criar(db):
     n_krs = criar_okrs(db, membros)
     db.commit()
     n_turnos = criar_escalas(db, membros)
-    print(f"{len(membros)} membros, {len(a)} ausências, {n_reunioes} 1:1s, {n_krs} KRs e {n_turnos} turnos criados.")
+    n_aval = criar_avaliacoes(db, membros)
+    print(f"{len(membros)} membros, {len(a)} ausências, {n_reunioes} 1:1s, {n_krs} KRs, {n_turnos} turnos "
+          f"e {n_aval} avaliações criados.")
 
 
 ANOTACOES = [
@@ -239,6 +242,67 @@ def criar_escalas(db, membros):
     futuros = [t for t in esc.turnos(db, plantao.id, de=HOJE) if t.inicio > HOJE]
     if len(futuros) > 2:
         esc.trocar_responsavel(db, futuros[1], ana.id, "Consulta médica")
+    return total
+
+
+FEEDBACKS = [
+    ("reconhecimento", "Na reunião de fechamento, apresentou os números com clareza e respondeu às dúvidas da diretoria — "
+                       "isso acelerou a aprovação do orçamento."),
+    ("reconhecimento", "Ajudou um colega novo a entender a rotina de conciliação sem que ninguém pedisse."),
+    ("construtivo", "Na entrega do relatório mensal, os ajustes foram feitos no último dia; isso gerou retrabalho para a "
+                    "equipe de dados. Combinamos uma prévia dois dias antes."),
+    ("reconhecimento", "Automatizou a extração diária e economizou cerca de 3h por semana do time."),
+    ("construtivo", "Durante a reunião com outra área, interrompeu colegas algumas vezes. Conversamos sobre dar espaço."),
+]
+
+
+def criar_avaliacoes(db, membros):
+    from app.ferramentas.avaliacoes import servico as av
+    ana, bruno, camila, diego, elisa, felipe, gabi, henrique, isabela, joao = membros
+    for m in membros:
+        if m is joao:
+            continue  # João sem feedback recente (aparece no alerta)
+        for _ in range(random.randint(1, 3)):
+            tipo, texto = random.choice(FEEDBACKS)
+            db.add(Feedback(membro_id=m.id, tipo=tipo, texto=texto, compartilhado=random.random() < 0.8,
+                            data=HOJE - timedelta(days=random.randint(3, 40))))
+    db.commit()
+    anterior = av.criar_ciclo(db, f"Avaliação {HOJE.year - 1}", date(HOJE.year - 1, 1, 1), date(HOJE.year - 1, 12, 31),
+                              date(HOJE.year, 1, 31))
+    atual = av.criar_ciclo(db, f"Avaliação {HOJE.year}", date(HOJE.year, 1, 1), date(HOJE.year, 12, 31),
+                           HOJE + timedelta(days=20))
+    # perfil de cada pessoa: (desempenho médio, potencial, viés da autoavaliação)
+    perfis = {"Ana": (4.4, 3, 0), "Bruno": (4.0, 2, 0.4), "Camila": (3.3, 3, 0.6), "Diego": (3.1, 3, 0),
+              "Elisa": (4.6, 2, -0.4), "Felipe": (3.6, 2, 0.2), "Gabriela": (3.8, 3, -0.2), "Henrique": (2.7, 2, 1.2),
+              "Isabela": (3.5, 1, 0), "João": (3.0, 2, 0.3)}
+    total = 0
+    for c in (anterior, atual):
+        for m in membros:
+            base, pot, vies = perfis[m.primeiro_nome]
+            if c is atual and m.primeiro_nome in ("Isabela", "João"):
+                continue  # pendentes no ciclo atual
+            for tipo, desloc in (("auto", vies), ("gestor", 0)):
+                if c is atual and tipo == "gestor" and m.primeiro_nome in ("Felipe", "Gabriela"):
+                    continue
+                a = av.obter_ou_criar(db, c, m.id, tipo)
+                notas = {k.id: (max(1, min(5, round(base + desloc + random.uniform(-0.8, 0.8)))), None)
+                         for k in c.criterios}
+                av.salvar(db, a, notas, {"pontos_fortes": "Comprometimento e conhecimento do negócio.",
+                                         "a_desenvolver": "Comunicação com outras áreas e planejamento."},
+                          pot if tipo == "gestor" else None, True)
+                total += 1
+    av.mudar_status(db, anterior, "encerrado")
+    db.add_all([
+        ItemPDI(membro_id=camila.id, ciclo_id=atual.id, descricao="Assumir a condução da reunião de fechamento",
+                tipo="pratica", prazo=HOJE + timedelta(days=45)),
+        ItemPDI(membro_id=camila.id, ciclo_id=atual.id, descricao="Mentoria quinzenal com a Ana", tipo="social",
+                prazo=HOJE + timedelta(days=90)),
+        ItemPDI(membro_id=diego.id, ciclo_id=atual.id, descricao="Curso de SQL avançado", tipo="formal",
+                prazo=HOJE - timedelta(days=5)),
+        ItemPDI(membro_id=henrique.id, ciclo_id=atual.id, descricao="Plano de melhoria: SLA de chamados", tipo="pratica",
+                prazo=HOJE + timedelta(days=30)),
+    ])
+    db.commit()
     return total
 
 

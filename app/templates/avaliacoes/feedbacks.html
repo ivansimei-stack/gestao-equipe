@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Feedback contínuo</h1>
+{% set c = None %}{% include "avaliacoes/_menu.html" %}
+<form class="formulario" method="post" action="/avaliacoes/feedbacks">
+  <label>Pessoa<select name="membro_id" required>{% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if f.membro_id == m.id|string }}>{{ m.nome }}</option>{% endfor %}</select></label>
+  <label>Tipo<select name="tipo">{% for k, v in tipos_fb.items() %}<option value="{{ k }}">{{ v[0] }}</option>{% endfor %}</select></label>
+  <label>Data<input type="date" name="data" value="{{ hoje() }}"></label>
+  <label class="largo">O que aconteceu e qual o impacto? <small>(modelo SCI: situação, comportamento, impacto)</small>
+    <textarea name="texto" rows="3" required placeholder="Na reunião com a diretoria (situação), você apresentou os números com clareza (comportamento), o que acelerou a aprovação do projeto (impacto)."></textarea></label>
+  <label class="check largo"><input type="checkbox" name="compartilhado" value="1" checked> Já conversei com a pessoa sobre isso</label>
+  <div class="acoes largo"><button>Registrar feedback</button></div>
+</form>
+
+<form class="filtros" method="get" style="margin-top:1.5rem">
+  <select name="membro_id" onchange="this.form.submit()"><option value="">Todas as pessoas</option>
+    {% for m in membros %}<option value="{{ m.id }}" {{ 'selected' if f.membro_id == m.id|string }}>{{ m.nome }}</option>{% endfor %}</select>
+  <select name="tipo" onchange="this.form.submit()"><option value="">Todos os tipos</option>
+    {% for k, v in tipos_fb.items() %}<option value="{{ k }}" {{ 'selected' if f.tipo == k }}>{{ v[0] }}</option>{% endfor %}</select>
+</form>
+<div class="feed">
+{% for x in lista %}
+  <article class="caixa feedback-item">
+    <div class="topo"><div><span class="tag {{ x.tipo_cor }}">{{ x.tipo_nome }}</span> <a href="/equipe/{{ x.membro_id }}"><strong>{{ x.membro.nome }}</strong></a>
+      <small class="suave">{{ x.data|data }}</small></div>
+      <div class="acoes">
+        <form method="post" action="/avaliacoes/feedbacks/{{ x.id }}/compartilhado"><button class="mini {{ 'sec' if x.compartilhado else 'ok' }}" title="Alternar">{{ 'Conversado ✓' if x.compartilhado else 'Marcar como conversado' }}</button></form>
+        <form method="post" action="/avaliacoes/feedbacks/{{ x.id }}/excluir" onsubmit="return confirm('Excluir?')"><button class="sec mini">✕</button></form>
+      </div></div>
+    <p class="pre">{{ x.texto }}</p>
+  </article>
+{% else %}<p class="suave">Nenhum feedback registrado.</p>{% endfor %}
+</div>
+{% if sem_feedback %}<section class="caixa"><h3>Ninguém registrou feedback recente para:</h3>
+  <p>{% for m, d in sem_feedback %}<a class="tag" href="?membro_id={{ m.id }}">{{ m.nome }}{{ ' · ' ~ d|data('%d/%m') if d else ' · nunca' }}</a> {% endfor %}</p></section>{% endif %}
+{% endblock %}

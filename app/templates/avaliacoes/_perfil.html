@@ -1,0 +1,13 @@
+{% if p.ultimo %}{% set c, r = p.ultimo %}
+<p>Última avaliação ({{ c.nome }}): <strong>{{ r.nota_gestor|nota }}</strong>
+  {% if r.caixa_info %}<span class="tag {{ r.caixa_info[2] }}">{{ r.caixa_info[0] }}</span>{% endif %}
+  · <a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ m.id }}">ver resultado</a></p>
+{% else %}<p class="suave">Nenhuma avaliação concluída.</p>{% endif %}
+<div class="duas-colunas">
+  <div><h4>Feedbacks recentes</h4>
+    {% for f in p.feedbacks %}<div class="feedback-item"><span class="tag {{ f.tipo_cor }}">{{ f.tipo_nome }}</span> <small class="suave">{{ f.data|data('%d/%m/%y') }}</small><p>{{ f.texto|truncate(160) }}</p></div>
+    {% else %}<p class="suave">Nenhum.</p>{% endfor %}
+    <a class="botao sec mini" href="/avaliacoes/feedbacks?membro_id={{ m.id }}">+ Registrar feedback</a></div>
+  <div><h4>PDI</h4>
+    {% with pdi = p.pdi, voltar = '/equipe/' ~ m.id, tipos_pdi = p.tipos_pdi, c = p.ciclo %}{% include "avaliacoes/_pdi.html" %}{% endwith %}</div>
+</div>

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block conteudo %}
+{% set editavel = a.status != 'enviada' and c.status != 'encerrado' %}
+<div class="topo">
+  <h1>{{ tipos_av[a.tipo] }} — <a href="/equipe/{{ m.id }}">{{ m.nome }}</a></h1>
+  <span class="tag {{ 'ok' if a.status == 'enviada' else 'alerta' }}">{{ 'Enviada' if a.status == 'enviada' else 'Rascunho' }}</span>
+</div>
+<p class="suave">{{ c.nome }} · período {{ c.inicio|data }} a {{ c.fim|data }}
+  · <a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ m.id }}/{{ 'gestor' if a.tipo == 'auto' else 'auto' }}">ir para {{ 'avaliação do gestor' if a.tipo == 'auto' else 'autoavaliação' }}</a>
+  · <a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ m.id }}">resultado</a></p>
+{% include "avaliacoes/_menu.html" %}
+
+<div class="layout-lateral">
+<form method="post" class="form-avaliacao">
+  <fieldset {{ 'disabled' if not editavel }}>
+  {% for k in c.criterios %}
+    {% set n = a.nota_de(k.id) %}{% set na = auto.nota_de(k.id) if auto else None %}
+    <section class="caixa criterio">
+      <h3>{{ k.nome }} <small class="suave">peso {{ k.peso|num(1) }}</small></h3>
+      {% if k.descricao %}<p class="suave">{{ k.descricao }}</p>{% endif %}
+      <div class="escala notas">
+        {% for v, rot in escala.items() %}
+        <label title="{{ rot }}"><input type="radio" name="nota_{{ k.id }}" value="{{ v }}" {{ 'checked' if n and n.nota == v }}>
+          <span>{{ v }}{% if na and na.nota == v %}<i class="marca-auto" title="Autoavaliação">auto</i>{% endif %}<small>{{ rot }}</small></span></label>
+        {% endfor %}
+      </div>
+      {% if na and na.comentario %}<p class="suave">💬 Autoavaliação: “{{ na.comentario }}”</p>{% endif %}
+      <input name="coment_{{ k.id }}" value="{{ n.comentario or '' if n }}" placeholder="Evidências / exemplos (opcional)" style="width:100%">
+    </section>
+  {% endfor %}
+  <section class="caixa formulario">
+    <label class="largo">Pontos fortes<textarea name="pontos_fortes" rows="3">{{ a.pontos_fortes or '' }}</textarea></label>
+    <label class="largo">Pontos a desenvolver<textarea name="a_desenvolver" rows="3">{{ a.a_desenvolver or '' }}</textarea></label>
+    <label class="largo">Comentário geral<textarea name="comentario" rows="3">{{ a.comentario or '' }}</textarea></label>
+    {% if a.tipo == 'gestor' %}
+    <fieldset class="escala largo"><legend>Potencial (capacidade de assumir desafios maiores nos próximos 1–2 anos)</legend>
+      {% for v, rot in potenciais.items() %}<label><input type="radio" name="potencial" value="{{ v }}" {{ 'checked' if a.potencial == v }}><span>{{ v }}<small>{{ rot }}</small></span></label>{% endfor %}
+    </fieldset>{% endif %}
+  </section>
+  </fieldset>
+  <div class="acoes">
+    {% if editavel %}
+      <button name="acao" value="rascunho" class="sec">Salvar rascunho</button>
+      <button name="acao" value="enviar" onclick="return confirm('Enviar? Depois só é possível alterar reabrindo.')">Enviar avaliação</button>
+    {% elif c.status != 'encerrado' %}
+      <button name="acao" value="reabrir" class="sec">Reabrir para edição</button>
+    {% endif %}
+    <span class="suave">Nota ponderada atual: <strong>{{ sv.nota_final(a)|nota }}</strong></span>
+  </div>
+</form>
+
+{% if a.tipo == 'gestor' %}
+<aside>
+  <section class="caixa">
+    <h3>Evidências: feedbacks do período</h3>
+    {% for f in feedbacks %}<div class="feedback-item"><span class="tag {{ f.tipo_cor }}">{{ f.tipo_nome }}</span> <small class="suave">{{ f.data|data('%d/%m/%y') }}</small><p>{{ f.texto }}</p></div>
+    {% else %}<p class="suave">Nenhum feedback registrado entre {{ c.inicio|data('%d/%m/%y') }} e {{ c.fim|data('%d/%m/%y') }}.</p>{% endfor %}
+  </section>
+  {% if auto %}<section class="caixa"><h3>Autoavaliação</h3><p>Nota: <strong>{{ sv.nota_final(auto)|nota }}</strong></p>
+    {% if auto.pontos_fortes %}<h4>Pontos fortes</h4><p class="pre">{{ auto.pontos_fortes }}</p>{% endif %}
+    {% if auto.a_desenvolver %}<h4>A desenvolver</h4><p class="pre">{{ auto.a_desenvolver }}</p>{% endif %}</section>
+  {% else %}<section class="caixa"><p class="suave">A autoavaliação ainda não foi enviada.</p></section>{% endif %}
+</aside>
+{% endif %}
+</div>
+{% endblock %}

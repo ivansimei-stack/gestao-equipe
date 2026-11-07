@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Novo ciclo de avaliação</h1>
+{% set c = None %}{% include "avaliacoes/_menu.html" %}
+<form class="formulario" method="post" action="/avaliacoes/ciclos">
+  <label>Nome<input name="nome" required value="{{ sug.nome }}"></label>
+  <label>Período avaliado — início<input type="date" name="inicio" required value="{{ sug.inicio }}"></label>
+  <label>Período avaliado — fim<input type="date" name="fim" required value="{{ sug.fim }}"></label>
+  <label>Prazo para preenchimento<input type="date" name="prazo" value="{{ sug.prazo }}"></label>
+  <label class="largo">Critérios<select name="copiar_de"><option value="">Usar o modelo padrão (6 critérios — editáveis depois)</option>
+    {% for x in ciclos %}<option value="{{ x.id }}">Copiar critérios de “{{ x.nome }}”</option>{% endfor %}</select></label>
+  <div class="acoes largo"><button>Criar ciclo</button></div>
+</form>
+{% endblock %}

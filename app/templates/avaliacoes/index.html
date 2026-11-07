@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}Avaliações · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<h1>Avaliação de desempenho</h1>
+{% include "avaliacoes/_menu.html" %}
+{% if not c %}
+<section class="caixa"><p>Nenhum ciclo de avaliação. <a href="/avaliacoes/ciclos/novo">Crie o primeiro</a> — já vem com critérios sugeridos.</p></section>
+{% else %}
+<form class="filtros" method="get">
+  <select name="ciclo" onchange="this.form.submit()">{% for x in ciclos %}<option value="{{ x.id }}" {{ 'selected' if x.id == c.id }}>{{ x.nome }} ({{ x.status_nome|lower }})</option>{% endfor %}</select>
+</form>
+<section class="caixa resumo-ciclo">
+  <div>
+    <h2>{{ c.nome }} <span class="tag {{ c.status_cor }}">{{ c.status_nome }}</span></h2>
+    <p class="suave">Período avaliado: {{ c.inicio|data }} a {{ c.fim|data }}{% if c.prazo %} · prazo para preencher: <strong class="{{ 'txt-risco' if c.prazo < hoje() and c.status == 'aberto' }}">{{ c.prazo|data }}</strong>{% endif %}
+      · {{ c.criterios|length }} critérios</p>
+    <div class="linha-metrica"><span>Preenchidas</span><div class="barra"><span style="width:{{ prog.pct * 100 }}%"></span></div><strong>{{ prog.pct|pct }}</strong></div>
+    <p class="suave">Autoavaliações: {{ prog.auto }}/{{ prog.total }} · Avaliações do gestor: {{ prog.gestor }}/{{ prog.total }}</p>
+  </div>
+  <form method="post" action="/avaliacoes/ciclos/{{ c.id }}/status" class="acoes">
+    {% if c.status == 'aberto' %}<button name="status" value="calibracao" class="sec">Ir para calibração</button>
+    {% elif c.status == 'calibracao' %}<button name="status" value="aberto" class="sec">Reabrir</button><button name="status" value="encerrado">Encerrar ciclo</button>
+    {% else %}<button name="status" value="calibracao" class="sec">Reabrir para calibração</button>{% endif %}
+    <a class="botao sec" href="/avaliacoes/ciclos/{{ c.id }}/exportar.csv">Exportar CSV</a>
+  </form>
+</section>
+
+<table>
+  <thead><tr><th>Pessoa</th><th>Autoavaliação</th><th>Gestor</th><th class="num">Nota auto</th><th class="num">Nota gestor</th><th class="num">Diferença</th><th>Nine-box</th><th></th></tr></thead>
+  <tbody>
+  {% for r in res %}
+    <tr>
+      <td><a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ r.membro.id }}">{{ r.membro.nome }}</a></td>
+      {% for a, tipo in [(r.auto, 'auto'), (r.gestor, 'gestor')] %}
+      <td><a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ r.membro.id }}/{{ tipo }}" class="tag {{ 'ok' if a and a.status == 'enviada' else ('alerta' if a and a.notas else '') }}">
+        {{ 'Enviada' if a and a.status == 'enviada' else ('Rascunho' if a and a.notas else 'Pendente') }}</a></td>
+      {% endfor %}
+      <td class="num">{{ r.nota_auto|nota }}</td>
+      <td class="num"><strong>{{ r.nota_gestor|nota }}</strong></td>
+      <td class="num {{ 'txt-risco' if r.gap is not none and r.gap|abs >= 1 }}">{{ ('+' if r.gap > 0 else '') ~ r.gap|nota if r.gap is not none else '—' }}</td>
+      <td>{% if r.caixa_info %}<span class="tag {{ r.caixa_info[2] }}">{{ r.caixa_info[0] }}</span>{% else %}—{% endif %}</td>
+      <td><a class="botao sec mini" href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ r.membro.id }}/gestor">Avaliar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="suave">A autoavaliação pode ser preenchida aqui com o que a pessoa enviar (ou junto com ela). Diferença = nota auto − nota gestor; acima de 1 ponto vale conversar sobre expectativas.</p>
+{% endif %}
+
+{% if sem_feedback %}
+<section class="caixa"><h3>Sem feedback registrado há {{ sv.DIAS_SEM_FEEDBACK_ALERTA }}+ dias</h3>
+  <p>{% for m, d in sem_feedback %}<a class="tag" href="/avaliacoes/feedbacks?membro_id={{ m.id }}">{{ m.nome }}{{ ' · ' ~ d|data('%d/%m') if d else ' · nunca' }}</a> {% endfor %}</p>
+</section>{% endif %}
+{% endblock %}

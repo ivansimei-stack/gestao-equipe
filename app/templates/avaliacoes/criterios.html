@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Critérios <small>{{ c.nome }}</small></h1>
+{% include "avaliacoes/_menu.html" %}
+{% set total = c.criterios|sum(attribute='peso') %}
+<form method="post">
+  <div class="formulario" style="margin-bottom:1rem">
+    <label>Nome do ciclo<input name="ciclo_nome" value="{{ c.nome }}"></label>
+    <label>Prazo<input type="date" name="ciclo_prazo" value="{{ c.prazo or '' }}"></label>
+  </div>
+  <table>
+    <thead><tr><th>Critério</th><th>Descrição (o que se espera)</th><th class="num">Peso</th><th class="num">% da nota</th><th>Remover</th></tr></thead>
+    <tbody>
+    {% for k in c.criterios %}
+      <tr><td><input name="nome_{{ k.id }}" value="{{ k.nome }}" required></td>
+        <td><input name="descricao_{{ k.id }}" value="{{ k.descricao or '' }}" style="width:100%"></td>
+        <td class="num"><input name="peso_{{ k.id }}" value="{{ k.peso|num(1) }}" size="4" inputmode="decimal"></td>
+        <td class="num">{{ (k.peso / total)|pct if total else '—' }}</td>
+        <td><input type="checkbox" name="remover_{{ k.id }}" value="1" title="Remover (apaga as notas dadas neste critério)"></td></tr>
+    {% endfor %}
+      <tr><td><input name="novo_nome" placeholder="+ Novo critério"></td><td><input name="novo_descricao" placeholder="Descrição" style="width:100%"></td>
+        <td class="num"><input name="novo_peso" value="1" size="4"></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  <p><button {{ 'disabled' if c.status == 'encerrado' }}>Salvar critérios</button>
+    {% if c.status == 'encerrado' %}<span class="suave">Ciclo encerrado — reabra para editar.</span>{% endif %}</p>
+</form>
+<h3>Escala de notas</h3>
+<ul>{% for k, v in escala.items() %}<li><strong>{{ k }}</strong> — {{ v }}</li>{% endfor %}</ul>
+<details class="perigo"><summary>Excluir ciclo</summary>
+  <form method="post" action="/avaliacoes/ciclos/{{ c.id }}/excluir" onsubmit="return confirm('Excluir o ciclo e TODAS as avaliações dele?')"><button class="perigo">Excluir ciclo</button></form>
+</details>
+{% endblock %}

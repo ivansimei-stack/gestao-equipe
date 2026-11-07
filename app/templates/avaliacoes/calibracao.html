@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Calibração <small>{{ c.nome }}</small></h1>
+{% include "avaliacoes/_menu.html" %}
+<div class="duas-colunas">
+  <section class="caixa">
+    <h3>Nine-box <small class="suave">({{ n }} avaliação(ões) do gestor enviadas)</small></h3>
+    {% set destaque = None %}{% include "avaliacoes/_ninebox.html" %}
+  </section>
+  <section class="caixa">
+    <h3>Distribuição de desempenho</h3>
+    <p>Média da equipe: <strong>{{ media|nota }}</strong></p>
+    {% for f, rot in [(3, 'Alto (≥ 4)'), (2, 'Médio (3 a 3,99)'), (1, 'Baixo (< 3)')] %}
+      <div class="linha-metrica"><span>{{ rot }}</span><div class="barra"><span style="width:{{ (dist[f] / n * 100) if n else 0 }}%"></span></div><strong>{{ dist[f] }}</strong></div>
+    {% endfor %}
+    <p class="suave">Na calibração, compare pessoas com papéis parecidos e procure vieses (recência, leniência, efeito halo).
+      Ajuste notas reabrindo a avaliação do gestor.</p>
+  </section>
+</div>
+<h2>Ranking</h2>
+<table>
+  <thead><tr><th>#</th><th>Pessoa</th><th>Área</th><th class="num">Gestor</th><th class="num">Auto</th><th>Potencial</th><th>Nine-box</th><th>Divergências</th></tr></thead>
+  <tbody>
+  {% for r in res %}
+    <tr><td>{{ loop.index }}</td><td><a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ r.membro.id }}">{{ r.membro.nome }}</a></td>
+      <td>{{ r.membro.area or '—' }}</td>
+      <td class="num"><strong>{{ r.nota_gestor|nota }}</strong></td><td class="num">{{ r.nota_auto|nota }}</td>
+      <td>{{ potenciais[r.gestor.potencial] if r.gestor and r.gestor.potencial and r.gestor.status == 'enviada' else '—' }}</td>
+      <td>{% if r.caixa_info %}<span class="tag {{ r.caixa_info[2] }}">{{ r.caixa_info[0] }}</span>{% else %}—{% endif %}</td>
+      <td>{% for k, na, ng in r.divergencias() %}<span class="tag alerta">{{ k.nome }}: {{ na }}×{{ ng }}</span> {% endfor %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

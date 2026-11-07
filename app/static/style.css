@@ -182,3 +182,25 @@ tr.linha-conflito td { background:var(--risco-fundo); } tr.linha-hoje td { backg
 button:disabled { opacity:.35; cursor:default; }
 .acoes-turno { text-align:right; white-space:nowrap; position:relative; } .acoes-turno > * { display:inline-block; vertical-align:middle; }
 .acoes-turno form.linha { text-align:left; }
+
+/* avaliações */
+.layout-lateral { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:1rem; align-items:start; }
+@media (max-width:900px) { .layout-lateral { grid-template-columns:1fr; } }
+.form-avaliacao fieldset[disabled] { opacity:.85; } .form-avaliacao > fieldset { border:none; padding:0; }
+.criterio h3 { margin:0 0 .2rem; } .criterio p { margin:.2rem 0 .6rem; }
+.escala.notas span { min-width:6.2rem; font-size:1.1rem; font-weight:600; position:relative; }
+.escala.notas span small { font-weight:400; text-align:center; }
+.marca-auto { position:absolute; top:-.55rem; right:-.3rem; font-size:.62rem; font-style:normal; background:var(--c6); color:#fff; border-radius:99px; padding:0 .35rem; }
+.feedback-item p { margin:.3rem 0 .6rem; } aside .feedback-item { border-bottom:1px dashed var(--borda); }
+.nota-grande { font-size:1.6rem; }
+.barra-dupla { position:relative; height:16px; } .barra-dupla span { position:absolute; left:0; border-radius:99px; }
+.barra-dupla .auto { top:0; height:6px; background:var(--c6); } .barra-dupla .gestor { top:8px; height:8px; background:var(--c1); }
+.ninebox { display:grid; grid-template-columns:1.6rem 1fr; grid-template-rows:1fr auto; gap:.3rem; }
+.ninebox .eixo-y { writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; font-size:.8rem; color:var(--suave); }
+.ninebox .eixo-x { grid-column:2; text-align:center; font-size:.8rem; color:var(--suave); }
+.ninebox .caixas { display:grid; grid-template-columns:repeat(3,1fr); gap:.3rem; }
+.caixa9 { position:relative; min-height:5.2rem; padding:.45rem .55rem; border-radius:8px; background:var(--fundo); border:1px solid var(--borda); font-size:.85rem; }
+.caixa9.ok { background:var(--ok-fundo); } .caixa9.alerta { background:var(--alerta-fundo); } .caixa9.risco { background:var(--risco-fundo); } .caixa9.info { background:var(--pri-claro); }
+.caixa9.destaque { outline:3px solid var(--pri); } .caixa9 .qtd { position:absolute; right:.5rem; top:.4rem; font-weight:700; color:var(--suave); }
+.caixa9 .nomes { display:flex; flex-wrap:wrap; gap:.15rem .45rem; margin-top:.3rem; }
+@media print { body > header, .submenu, .nao-imprimir, button, .botao, details.perigo { display:none !important; } body { background:#fff; } .caixa { break-inside:avoid; } }

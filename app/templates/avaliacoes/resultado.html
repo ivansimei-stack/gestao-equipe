@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="topo">
+  <h1>Resultado — <a href="/equipe/{{ m.id }}">{{ m.nome }}</a> <small>{{ c.nome }}</small></h1>
+  <div class="acoes"><button class="sec" onclick="window.print()">Imprimir / PDF</button></div>
+</div>
+{% include "avaliacoes/_menu.html" %}
+
+<dl class="ficha">
+  <div><dt>Nota do gestor</dt><dd><strong class="nota-grande">{{ r.nota_gestor|nota }}</strong></dd></div>
+  <div><dt>Autoavaliação</dt><dd>{{ r.nota_auto|nota }}</dd></div>
+  <div><dt>Diferença</dt><dd>{{ ('+' if r.gap > 0 else '') ~ r.gap|nota if r.gap is not none else '—' }}</dd></div>
+  <div><dt>Potencial</dt><dd>{{ potenciais[r.gestor.potencial] if r.gestor and r.gestor.potencial else '—' }}</dd></div>
+  <div><dt>Nine-box</dt><dd>{% if r.caixa_info %}<span class="tag {{ r.caixa_info[2] }}">{{ r.caixa_info[0] }}</span>{% else %}—{% endif %}</dd></div>
+</dl>
+{% if r.caixa_info %}<p class="suave">{{ r.caixa_info[1] }}</p>{% endif %}
+
+<div class="duas-colunas">
+<section class="caixa">
+  <h3>Notas por critério</h3>
+  <table class="comparativo">
+    <thead><tr><th>Critério</th><th class="num">Auto</th><th class="num">Gestor</th><th></th></tr></thead>
+    <tbody>
+    {% for k in c.criterios %}
+      {% set na = r.auto.nota_de(k.id) if r.auto and r.auto.status == 'enviada' else None %}
+      {% set ng = r.gestor.nota_de(k.id) if r.gestor and r.gestor.status == 'enviada' else None %}
+      {% set diverg = na and ng and na.nota and ng.nota and (na.nota - ng.nota)|abs >= 2 %}
+      <tr class="{{ 'linha-conflito' if diverg }}">
+        <td>{{ k.nome }}{% if ng and ng.comentario %}<small class="suave d-block">{{ ng.comentario }}</small>{% endif %}</td>
+        <td class="num">{{ na.nota if na and na.nota else '—' }}</td>
+        <td class="num"><strong>{{ ng.nota if ng and ng.nota else '—' }}</strong></td>
+        <td style="width:35%">{% if ng and ng.nota %}<div class="barra-dupla">
+          {% if na and na.nota %}<span class="auto" style="width:{{ na.nota * 20 }}%"></span>{% endif %}
+          <span class="gestor" style="width:{{ ng.nota * 20 }}%"></span></div>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="legenda"><span><span class="ponto c6"></span>Autoavaliação</span><span><span class="ponto c1"></span>Gestor</span><span>linhas destacadas: divergência ≥ 2 pontos</span></p>
+</section>
+<section class="caixa">
+  <h3>Posição no nine-box</h3>
+  {% set destaque = r.caixa %}{% set grade = None %}{% include "avaliacoes/_ninebox.html" %}
+</section>
+</div>
+
+{% if r.gestor and r.gestor.status == 'enviada' %}
+<div class="duas-colunas">
+  <section class="caixa"><h3>Pontos fortes</h3><p class="pre">{{ r.gestor.pontos_fortes or '—' }}</p></section>
+  <section class="caixa"><h3>Pontos a desenvolver</h3><p class="pre">{{ r.gestor.a_desenvolver or '—' }}</p></section>
+</div>
+{% if r.gestor.comentario %}<section class="caixa"><h3>Comentário geral</h3><p class="pre">{{ r.gestor.comentario }}</p></section>{% endif %}
+{% else %}<section class="caixa"><p>A avaliação do gestor ainda não foi enviada. <a href="/avaliacoes/ciclos/{{ c.id }}/membros/{{ m.id }}/gestor">Preencher agora</a>.</p></section>{% endif %}
+
+<section class="caixa">
+  <h3>Plano de desenvolvimento (PDI)</h3>
+  {% set voltar = request.url.path %}{% include "avaliacoes/_pdi.html" %}
+</section>
+
+<section class="caixa nao-imprimir">
+  <h3>Feedbacks no período</h3>
+  {% for f in feedbacks %}<div class="feedback-item"><span class="tag {{ f.tipo_cor }}">{{ f.tipo_nome }}</span> <small class="suave">{{ f.data|data('%d/%m/%y') }}</small><p>{{ f.texto }}</p></div>
+  {% else %}<p class="suave">Nenhum.</p>{% endfor %}
+</section>
+{% endblock %}

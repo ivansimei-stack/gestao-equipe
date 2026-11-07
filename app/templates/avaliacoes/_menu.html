@@ -1,0 +1,7 @@
+<nav class="submenu">
+  <a href="/avaliacoes{{ '?ciclo=' ~ c.id if c }}" class="{{ 'ativo' if request.url.path == '/avaliacoes' }}">Ciclo</a>
+  {% if c %}<a href="/avaliacoes/ciclos/{{ c.id }}/calibracao" class="{{ 'ativo' if 'calibracao' in request.url.path }}">Calibração e nine-box</a>
+  <a href="/avaliacoes/ciclos/{{ c.id }}/criterios" class="{{ 'ativo' if 'criterios' in request.url.path }}">Critérios</a>{% endif %}
+  <a href="/avaliacoes/feedbacks" class="{{ 'ativo' if 'feedbacks' in request.url.path }}">Feedback contínuo</a>
+  <a class="botao" href="/avaliacoes/ciclos/novo">+ Novo ciclo</a>
+</nav>

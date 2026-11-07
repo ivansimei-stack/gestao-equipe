@@ -1,0 +1,21 @@
+{# espera: pdi (lista), m (membro), voltar, tipos_pdi, c (ciclo opcional) #}
+<table>
+  <tbody>
+  {% for i in pdi %}
+    <tr class="{{ 'inativo' if i.concluido }}">
+      <td style="width:2rem"><form method="post" action="/avaliacoes/pdi/{{ i.id }}/alternar"><input type="hidden" name="voltar" value="{{ voltar }}">
+        <button class="check {{ 'marcado' if i.concluido }}">{{ '✓' if i.concluido }}</button></form></td>
+      <td>{{ i.descricao }} <small class="suave d-block">{{ tipos_pdi[i.tipo] }}</small></td>
+      <td>{% if i.prazo %}<span class="{{ 'tag risco' if i.atrasado }}">{{ i.prazo|data('%d/%m/%y') }}</span>{% endif %}</td>
+      <td><form method="post" action="/avaliacoes/pdi/{{ i.id }}/excluir"><input type="hidden" name="voltar" value="{{ voltar }}"><button class="sec mini">✕</button></form></td>
+    </tr>
+  {% else %}<tr><td class="vazio">Nenhum item no plano.</td></tr>{% endfor %}
+  </tbody>
+</table>
+<form method="post" action="/avaliacoes/pdi" class="linha nao-imprimir" style="margin-top:.6rem">
+  <input type="hidden" name="membro_id" value="{{ m.id }}"><input type="hidden" name="voltar" value="{{ voltar }}">
+  {% if c %}<input type="hidden" name="ciclo_id" value="{{ c.id }}">{% endif %}
+  <input name="descricao" placeholder="Ação de desenvolvimento" required size="30">
+  <select name="tipo">{% for k, v in tipos_pdi.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select>
+  <input type="date" name="prazo"><button class="sec">Adicionar</button>
+</form>
