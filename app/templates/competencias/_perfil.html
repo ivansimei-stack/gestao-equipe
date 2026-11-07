@@ -1,0 +1,6 @@
+<div class="duas-colunas">
+  <div><h4>Domina</h4><p>{% for l in p.fortes %}<span class="tag ok">{{ l.c.nome }} · {{ l.nivel }}</span> {% else %}<span class="suave">—</span>{% endfor %}</p>
+    <h4>Quer aprender</h4><p>{% for l in p.interesses %}<span class="tag info">♥ {{ l.c.nome }}</span> {% else %}<span class="suave">—</span>{% endfor %}</p></div>
+  <div><h4>Abaixo do esperado</h4><p>{% for l in p.gaps %}<span class="tag alerta">{{ l.c.nome }}: {{ l.nivel }} de {{ l.c.nivel_esperado }}</span> {% else %}<span class="suave">Nenhuma lacuna.</span>{% endfor %}</p></div>
+</div>
+<p><a class="botao sec mini" href="/competencias/pessoa/{{ m.id }}">Atualizar competências</a></p>

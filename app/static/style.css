@@ -204,3 +204,24 @@ button:disabled { opacity:.35; cursor:default; }
 .caixa9.destaque { outline:3px solid var(--pri); } .caixa9 .qtd { position:absolute; right:.5rem; top:.4rem; font-weight:700; color:var(--suave); }
 .caixa9 .nomes { display:flex; flex-wrap:wrap; gap:.15rem .45rem; margin-top:.3rem; }
 @media print { body > header, .submenu, .nao-imprimir, button, .botao, details.perigo { display:none !important; } body { background:#fff; } .caixa { break-inside:avoid; } }
+
+/* competências */
+table.matriz { font-size:.85rem; border-collapse:separate; border-spacing:0; width:auto; }
+table.matriz th, table.matriz td { border-bottom:1px solid var(--borda); border-right:1px solid var(--borda); text-align:center; padding:0; }
+table.matriz .nome { text-align:left; padding:.4rem .6rem; white-space:nowrap; position:sticky; left:0; background:var(--card); z-index:1; min-width:12rem; }
+table.matriz th.comp { height:9.5rem; vertical-align:bottom; min-width:2.6rem; }
+table.matriz th.comp div { width:2.6rem; display:flex; justify-content:center; }
+table.matriz th.comp span { writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; padding:.4rem 0; font-weight:600; color:var(--texto); }
+td.nv { height:2.2rem; min-width:2.6rem; font-weight:600; position:relative; }
+.nv0 { background:var(--fundo); color:var(--suave); } .nv1 { background:color-mix(in srgb, var(--c1) 15%, var(--card)); }
+.nv2 { background:color-mix(in srgb, var(--c1) 35%, var(--card)); } .nv3 { background:color-mix(in srgb, var(--c1) 62%, var(--card)); color:#fff; }
+.nv4 { background:var(--c1); color:#fff; }
+td.nv.abaixo { box-shadow:inset 0 -3px 0 var(--alerta); }
+.ponto.nv0 { background:var(--fundo); outline:1px solid var(--borda); } .ponto.nv1, .ponto.nv2, .ponto.nv3, .ponto.nv4 { background:inherit; }
+.legenda .ponto.nv1 { background:color-mix(in srgb, var(--c1) 15%, var(--card)); } .legenda .ponto.nv2 { background:color-mix(in srgb, var(--c1) 35%, var(--card)); }
+.legenda .ponto.nv3 { background:color-mix(in srgb, var(--c1) 62%, var(--card)); } .legenda .ponto.nv4 { background:var(--c1); }
+.ponto.abaixo-leg { background:var(--card); box-shadow:inset 0 -3px 0 var(--alerta); outline:1px solid var(--borda); }
+.coracao { color:var(--c5); font-size:.7rem; margin-left:1px; }
+td.nv select { padding:.1rem; font-size:.8rem; width:2.6rem; } td.nv .int { font-size:.7rem; color:var(--c5); display:block; } td.nv .int input { width:.8rem; height:.8rem; }
+td.media { font-weight:600; padding:0 .6rem; }
+td.fo { font-weight:700; } td.fo.ok { background:var(--ok-fundo); color:var(--ok); } td.fo.alerta { background:var(--alerta-fundo); color:var(--alerta); } td.fo.risco { background:var(--risco-fundo); color:var(--risco); }

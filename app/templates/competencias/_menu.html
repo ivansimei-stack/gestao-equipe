@@ -1,0 +1,5 @@
+<nav class="submenu">
+  <a href="/competencias" class="{{ 'ativo' if request.url.path == '/competencias' }}">Matriz</a>
+  <a href="/competencias/riscos" class="{{ 'ativo' if 'riscos' in request.url.path }}">Riscos e mentorias</a>
+  <a href="/competencias/catalogo" class="{{ 'ativo' if 'catalogo' in request.url.path }}">Catálogo</a>
+</nav>

@@ -100,6 +100,7 @@ def criar(db):
     db.commit()
     n_turnos = criar_escalas(db, membros)
     n_aval = criar_avaliacoes(db, membros)
+    criar_competencias(db, membros)
     print(f"{len(membros)} membros, {len(a)} ausências, {n_reunioes} 1:1s, {n_krs} KRs, {n_turnos} turnos "
           f"e {n_aval} avaliações criados.")
 
@@ -304,6 +305,32 @@ def criar_avaliacoes(db, membros):
     ])
     db.commit()
     return total
+
+
+def criar_competencias(db, membros):
+    from app.ferramentas.competencias import servico as comp
+    comp.criar_exemplos(db)
+    cs = {c.nome: c for c in comp.competencias(db)}
+    ordem = ["SQL e consultas", "Excel avançado", "Qlik Sense", "Python / automação", "Fechamento mensal",
+             "Conciliação", "Atendimento ao cliente interno", "Comunicação com diretoria", "Facilitação de reuniões"]
+    tabela = {
+        "Ana":      [2, 4, 1, 0, 4, 3, 2, 4, 3],
+        "Bruno":    [3, 4, 2, 2, 3, 4, 1, 3, 2],
+        "Camila":   [2, 3, 1, 1, 2, 3, 2, 1, 1],
+        "Diego":    [1, 2, 0, 1, 1, 2, 2, 1, 0],
+        "Elisa":    [4, 4, 4, 3, 1, 1, 1, 3, 3],
+        "Felipe":   [3, 3, 2, 2, 0, 0, 1, 1, 1],
+        "Gabriela": [3, 2, 2, 4, 0, 0, 0, 1, 1],
+        "Henrique": [1, 2, 0, 0, 0, 1, 4, 1, 1],
+        "Isabela":  [1, 2, 1, 0, 0, 0, 3, 2, 2],
+        "João":     [0, 1, 0, 0, 0, 0, 2, 0, 0],
+    }
+    interesses = {"Camila": ["Fechamento mensal", "Comunicação com diretoria"], "Diego": ["SQL e consultas", "Conciliação"],
+                  "Felipe": ["Python / automação"], "Isabela": ["Excel avançado"], "João": ["SQL e consultas", "Qlik Sense"]}
+    for m in membros:
+        for nome, nivel in zip(ordem, tabela[m.primeiro_nome]):
+            comp.definir(db, m.id, cs[nome].id, nivel, nome in interesses.get(m.primeiro_nome, []), commit=False)
+    db.commit()
 
 
 if __name__ == "__main__":

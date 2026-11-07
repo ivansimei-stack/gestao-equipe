@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Riscos e mentorias</h1>
+{% include "competencias/_menu.html" %}
+{% if descobertos %}
+<section class="caixa alerta-caixa"><h3>⚠ Competências críticas sem ninguém presente nos próximos 30 dias</h3>
+  <ul>{% for a in descobertos %}<li><strong>{{ a.competencia.nome }}</strong> — {% for d in a.dias_descobertos[:8] %}{{ d|data('%d/%m') }}{{ ', ' if not loop.last }}{% endfor %}{{ '…' if a.dias_descobertos|length > 8 }}
+    <small class="suave">(quem domina: {% for m in a.detentores %}{{ m.primeiro_nome }}{{ ', ' if not loop.last }}{% endfor %} — ver <a href="/ausencias/calendario">calendário</a>)</small></li>{% endfor %}</ul>
+</section>{% endif %}
+
+<h2>Fator ônibus <small>quantas pessoas dominam cada competência (nível ≥ 3)</small></h2>
+<table>
+  <thead><tr><th>Competência</th><th>Categoria</th><th class="num">Dominam</th><th class="num">Alvo</th><th>Quem domina</th><th>Interessados</th><th>Situação</th></tr></thead>
+  <tbody>
+  {% for a in analises %}
+    <tr><td>{{ a.competencia.nome }}{% if a.competencia.critica %} <span class="tag info">crítica</span>{% endif %}</td>
+      <td>{{ a.competencia.categoria }}</td>
+      <td class="num"><strong>{{ a.fator_onibus }}</strong></td><td class="num">{{ a.competencia.minimo_pessoas }}</td>
+      <td>{% for m in a.detentores %}<a href="/competencias/pessoa/{{ m.id }}">{{ m.primeiro_nome }}</a>{{ '★' if m in a.referencias }}{{ ', ' if not loop.last }}{% else %}—{% endfor %}</td>
+      <td>{% for m in a.interessados %}{{ m.primeiro_nome }}{{ ', ' if not loop.last }}{% else %}<span class="suave">—</span>{% endfor %}</td>
+      <td><span class="tag {{ riscos[a.risco][1] }}">{{ riscos[a.risco][0] }}</span></td></tr>
+  {% else %}<tr><td colspan="7" class="vazio">Sem competências.</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+<h2>Sugestões de mentoria</h2>
+{% if mentorias %}
+<table>
+  <thead><tr><th>Competência</th><th>Mentor(a)</th><th>Aprendiz</th><th>Por quê</th><th></th></tr></thead>
+  <tbody>
+  {% for s in mentorias %}
+    <tr><td>{{ s.competencia.nome }}</td><td>{{ s.mentor.nome }}</td><td>{{ s.aprendiz.nome }}</td>
+      <td>{% if s.risco != 'ok' %}<span class="tag {{ riscos[s.risco][1] }}">{{ riscos[s.risco][0] }}</span>{% endif %}
+        {% if s.interesse %}<span class="tag ok">♥ quer aprender</span>{% else %}<span class="tag">já está no nível 2</span>{% endif %}</td>
+      <td><form method="post" action="/competencias/mentoria-pdi">
+        <input type="hidden" name="competencia_id" value="{{ s.competencia.id }}"><input type="hidden" name="mentor_id" value="{{ s.mentor.id }}">
+        <input type="hidden" name="aprendiz_id" value="{{ s.aprendiz.id }}"><button class="sec mini">Criar item de PDI</button></form></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="suave">Sem sugestões: marque interesses na matriz (♥) ou cadastre níveis.</p>{% endif %}
+<p class="suave">★ = referência (nível 4). Risco alto: competência crítica abaixo do alvo, ou só 1 pessoa domina.</p>
+{% endblock %}

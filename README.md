@@ -95,11 +95,26 @@ todas as ferramentas, aniversários e tempo de casa.
   alerta de pessoas sem feedback há 45+ dias
 - **PDI** no modelo 70-20-10 com prazos; resultado individual pronto para imprimir/PDF
 
-## Próximas ferramentas
+### Competências (`/competencias`)
+- Catálogo por categoria com **nível esperado**, marcação de **crítica** e meta de pessoas que dominam
+- **Matriz** pessoas × competências (níveis 0–4) editável em uma tela, com marcação de interesse (♥)
+- **Fator ônibus**: quantas pessoas dominam cada competência e o risco associado
+- Cruza com Ausências: alerta de **dias sem ninguém que domine** uma competência crítica (próximos 30 dias)
+- **Sugestões de mentoria** (referência → interessado) que viram item de PDI com um clique
 
-- **Férias e ausências** — calendário e conflitos de cobertura
-- **1:1s** — pautas, anotações e ações por pessoa
-- **Metas / OKRs** — acompanhamento trimestral
-- **Escala / plantão** — rodízio automático
-- **Avaliação de desempenho** — ciclos e feedbacks
-- **Matriz de competências** — habilidades × pessoas
+## Como as ferramentas se conectam
+
+- **Painel inicial**: cada ferramenta publica seus indicadores e alertas
+- **Perfil da pessoa** (`/equipe/<id>`): reúne férias, 1:1s, OKRs, turnos, avaliação, PDI e competências
+- Escalas pulam quem está ausente; Competências alertam dias críticos sem cobertura;
+  mentorias de Competências geram itens de PDI em Avaliações
+
+## API
+
+Toda a funcionalidade também está disponível via API JSON (documentação interativa em `/docs`),
+útil para integrar com planilhas, Qlik ou automações.
+
+## Segurança
+
+Os dados são sensíveis (avaliações, notas privadas de 1:1). Se for rodar fora da sua máquina,
+defina `APP_USUARIO` e `APP_SENHA` no `.env` para exigir login, e use HTTPS.

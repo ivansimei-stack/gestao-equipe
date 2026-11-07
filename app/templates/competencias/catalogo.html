@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Catálogo de competências</h1>
+{% include "competencias/_menu.html" %}
+<datalist id="cats">{% for c in categorias %}<option value="{{ c }}">{% endfor %}<option value="Técnica"><option value="Processos"><option value="Comportamental"></datalist>
+<table>
+  <thead><tr><th>Competência</th><th>Categoria</th><th>Descrição</th><th class="num">Esperado</th><th class="num">Mín. pessoas</th><th>Crítica</th><th>Ativa</th><th></th></tr></thead>
+  <tbody>
+  {% for c in comps %}
+    <tr class="{{ 'inativo' if not c.ativa }}"><form method="post" action="/competencias/catalogo/{{ c.id }}" id="f{{ c.id }}"></form>
+      <td><input form="f{{ c.id }}" name="nome" value="{{ c.nome }}" required></td>
+      <td><input form="f{{ c.id }}" name="categoria" value="{{ c.categoria }}" list="cats" size="12"></td>
+      <td><input form="f{{ c.id }}" name="descricao" value="{{ c.descricao or '' }}"></td>
+      <td class="num"><select form="f{{ c.id }}" name="nivel_esperado">{% for v in range(5) %}<option {{ 'selected' if v == c.nivel_esperado }}>{{ v }}</option>{% endfor %}</select></td>
+      <td class="num"><input form="f{{ c.id }}" type="number" name="minimo_pessoas" min="1" max="20" value="{{ c.minimo_pessoas }}" style="width:4rem"></td>
+      <td><input form="f{{ c.id }}" type="checkbox" name="critica" value="1" {{ 'checked' if c.critica }}></td>
+      <td><input form="f{{ c.id }}" type="checkbox" name="ativa" value="1" {{ 'checked' if c.ativa }}></td>
+      <td><div class="acoes"><button form="f{{ c.id }}" class="sec mini">Salvar</button>
+        <form method="post" action="/competencias/catalogo/{{ c.id }}/excluir" onsubmit="return confirm('Excluir a competência e os níveis registrados?')"><button class="sec mini">✕</button></form></div></td>
+    </tr>
+  {% else %}<tr><td colspan="8" class="vazio">Catálogo vazio.</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+<h2>Nova competência</h2>
+<form class="formulario" method="post" action="/competencias/catalogo">
+  <label>Nome<input name="nome" required></label>
+  <label>Categoria<input name="categoria" list="cats" value="Técnica"></label>
+  <label>Nível esperado<select name="nivel_esperado">{% for v, (n, d) in niveis_nomes.items() %}<option value="{{ v }}" {{ 'selected' if v == 2 }}>{{ v }} — {{ n }}</option>{% endfor %}</select></label>
+  <label>Mínimo de pessoas com nível ≥ 3<input type="number" name="minimo_pessoas" min="1" max="20" value="2"></label>
+  <label class="largo">Descrição<input name="descricao"></label>
+  <label class="check"><input type="checkbox" name="critica" value="1"> Crítica para a operação</label>
+  <div class="acoes largo"><button>Adicionar</button></div>
+</form>
+<form method="post" action="/competencias/catalogo/exemplos" style="margin-top:1rem"><button class="sec">Adicionar competências de exemplo</button>
+  <span class="suave">(SQL, Excel, Qlik, fechamento, conciliação, comunicação…)</span></form>
+{% endblock %}

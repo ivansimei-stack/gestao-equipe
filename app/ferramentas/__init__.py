@@ -7,7 +7,7 @@ Cada ferramenta é um subpacote com:
 
 Para criar uma nova: `make nova NOME=minha_ferramenta` e adicione-a em FERRAMENTAS abaixo.
 """
-from app.ferramentas import ausencias, avaliacoes, equipe, escalas, okrs, um_a_um
+from app.ferramentas import ausencias, avaliacoes, competencias, equipe, escalas, okrs, um_a_um
 
 FERRAMENTAS = [
     equipe.FERRAMENTA,
@@ -16,4 +16,5 @@ FERRAMENTAS = [
     okrs.FERRAMENTA,
     escalas.FERRAMENTA,
     avaliacoes.FERRAMENTA,
+    competencias.FERRAMENTA,
 ]

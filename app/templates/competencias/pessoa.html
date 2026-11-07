@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Competências — <a href="/equipe/{{ m.id }}">{{ m.nome }}</a></h1>
+{% include "competencias/_menu.html" %}
+<form method="post" action="/competencias/matriz">
+<input type="hidden" name="voltar" value="{{ request.url.path }}">
+<table>
+  <thead><tr><th>Competência</th><th>Nível</th><th style="width:30%"></th><th class="num">Esperado</th><th>Quer aprender</th></tr></thead>
+  <tbody>
+  {% for l in linhas %}
+    <tr><td>{{ l.c.nome }}{% if l.c.critica %} ★{% endif %} <small class="suave d-block">{{ l.c.categoria }}</small></td>
+      <td><select name="n_{{ m.id }}_{{ l.c.id }}">{% for v, (n, d) in niveis_nomes.items() %}<option value="{{ v }}" {{ 'selected' if v == l.nivel }}>{{ v }} — {{ n }}</option>{% endfor %}</select></td>
+      <td><div class="barra-okr"><div class="barra {{ 'alerta' if l.gap else 'ok' }}"><span style="width:{{ l.nivel * 25 }}%"></span></div>
+        <i class="esperado" style="left:{{ l.c.nivel_esperado * 25 }}%"></i></div></td>
+      <td class="num">{{ l.c.nivel_esperado }}{% if l.gap %} <span class="tag alerta">−{{ l.gap }}</span>{% endif %}</td>
+      <td><input type="checkbox" name="i_{{ m.id }}_{{ l.c.id }}" {{ 'checked' if l.interesse }}></td></tr>
+  {% else %}<tr><td colspan="5" class="vazio">Nenhuma competência no catálogo.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% if linhas %}<p><button>Salvar</button></p>{% endif %}
+</form>
+{% endblock %}

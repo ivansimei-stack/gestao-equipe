@@ -65,9 +65,9 @@ def pagina(request: Request):
 
     reg = RAIZ / "app" / "ferramentas" / "__init__.py"
     txt = reg.read_text(encoding="utf-8")
-    txt = txt.replace("from app.ferramentas import equipe",
-                      f"from app.ferramentas import equipe\nfrom app.ferramentas import {slug}", 1)
-    txt = txt.replace("    equipe.FERRAMENTA,\n", f"    equipe.FERRAMENTA,\n    {slug}.FERRAMENTA,\n", 1)
+    txt = txt.replace("FERRAMENTAS = [", f"from app.ferramentas import {slug}  # noqa: E402\n\nFERRAMENTAS = [", 1)
+    fim = txt.rindex("]")
+    txt = txt[:fim] + f"    {slug}.FERRAMENTA,\n" + txt[fim:]
     reg.write_text(txt, encoding="utf-8")
     print(f"Ferramenta '{slug}' criada em {pasta.relative_to(RAIZ)} e registrada.")
 

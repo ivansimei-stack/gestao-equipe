@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}Competências · {{ APP_NOME }}{% endblock %}
+{% block conteudo %}
+<div class="topo"><h1>Matriz de competências</h1>
+  {% if comps and membros %}<a class="botao {{ 'sec' if editar }}" href="?area={{ area }}&categoria={{ categoria }}{{ '' if editar else '&editar=1' }}">{{ 'Sair da edição' if editar else 'Editar níveis' }}</a>{% endif %}</div>
+{% include "competencias/_menu.html" %}
+{% if not comps %}
+<section class="caixa"><p>Nenhuma competência cadastrada. Monte o <a href="/competencias/catalogo">catálogo</a> — há um conjunto de exemplos para começar.</p></section>
+{% else %}
+<form class="filtros" method="get">
+  {% if editar %}<input type="hidden" name="editar" value="1">{% endif %}
+  <select name="area" onchange="this.form.submit()"><option value="">Todas as áreas</option>{% for a in areas %}<option {{ 'selected' if a == area }}>{{ a }}</option>{% endfor %}</select>
+  <select name="categoria" onchange="this.form.submit()"><option value="">Todas as categorias</option>{% for c in categorias %}<option {{ 'selected' if c == categoria }}>{{ c }}</option>{% endfor %}</select>
+</form>
+
+<form method="post" action="/competencias/matriz">
+<input type="hidden" name="voltar" value="{{ request.url.path }}?{{ request.url.query }}">
+<div class="tabela-rolagem">
+<table class="matriz">
+  <thead>
+    <tr><th class="nome"></th>
+      {% for c in comps %}<th class="comp" title="{{ c.descricao or '' }}"><div><span>{{ c.nome }}{% if c.critica %} ★{% endif %}</span></div></th>{% endfor %}
+      <th class="comp"><div><span>Média</span></div></th></tr>
+  </thead>
+  <tbody>
+  {% for m in membros %}
+    {% set ns = namespace(soma=0) %}
+    <tr><td class="nome"><a href="/competencias/pessoa/{{ m.id }}">{{ m.nome }}</a>{% if m.area %}<small class="suave"> · {{ m.area }}</small>{% endif %}</td>
+    {% for c in comps %}
+      {% set n = mapa.get((m.id, c.id)) %}{% set nivel = n.nivel if n else 0 %}{% set ns.soma = ns.soma + nivel %}
+      <td class="nv nv{{ nivel }} {{ 'abaixo' if nivel < c.nivel_esperado }}" title="{{ m.primeiro_nome }} · {{ c.nome }}: {{ niveis_nomes[nivel][0] }}{{ ' · quer aprender' if n and n.interesse }}{{ ' · abaixo do esperado (' ~ c.nivel_esperado ~ ')' if nivel < c.nivel_esperado }}">
+        {% if editar %}
+          <select name="n_{{ m.id }}_{{ c.id }}">{% for v in range(5) %}<option value="{{ v }}" {{ 'selected' if v == nivel }}>{{ v }}</option>{% endfor %}</select>
+          <label class="int" title="Quer aprender"><input type="checkbox" name="i_{{ m.id }}_{{ c.id }}" {{ 'checked' if n and n.interesse }}>♥</label>
+        {% else %}{{ nivel }}{% if n and n.interesse %}<sup class="coracao">♥</sup>{% endif %}{% endif %}
+      </td>
+    {% endfor %}
+      <td class="num media">{{ (ns.soma / comps|length)|num(1) }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr><td class="nome">Pessoas com nível ≥ 3</td>
+      {% for c in comps %}{% set a = analises[c.id] %}<td class="fo {{ riscos[a.risco][1] }}" title="{{ riscos[a.risco][0] }} — alvo: {{ c.minimo_pessoas }}">{{ a.fator_onibus }}</td>{% endfor %}<td></td></tr>
+    <tr><td class="nome">Nível esperado</td>{% for c in comps %}<td class="suave">{{ c.nivel_esperado }}</td>{% endfor %}<td></td></tr>
+  </tfoot>
+</table>
+</div>
+{% if editar %}<p><button>Salvar matriz</button> <span class="suave">♥ = a pessoa tem interesse em aprender</span></p>{% endif %}
+</form>
+<p class="legenda">{% for v, (nome, desc) in niveis_nomes.items() %}<span title="{{ desc }}"><span class="ponto nv{{ v }}"></span>{{ v }} {{ nome }}</span>{% endfor %}
+  <span>★ crítica</span><span><span class="ponto abaixo-leg"></span>abaixo do esperado</span></p>
+{% endif %}
+{% endblock %}
