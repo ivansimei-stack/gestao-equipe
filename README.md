@@ -8,6 +8,11 @@ que compartilha o mesmo banco, o mesmo cadastro de pessoas e o mesmo layout.
 
 ## Começando
 
+> **Usuário Windows?** Siga o passo a passo em [INSTALACAO_WINDOWS.md](INSTALACAO_WINDOWS.md)
+> (instalação com dois cliques e dados salvos no OneDrive).
+
+Para desenvolvimento (Linux/Mac):
+
 ```bash
 make setup      # cria .venv e instala dependências
 cp .env.example .env
