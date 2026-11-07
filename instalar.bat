@@ -31,7 +31,8 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-echo  [ok] Python encontrado.
+for /f "delims=" %%v in ('%PY% -c "import sys, platform; print(sys.version.split()[0], platform.machine())"') do set "PYVER=%%v"
+echo  [ok] Python encontrado: %PYVER%
 
 rem ---------- 2. Ambiente e dependências ----------
 if not exist ".venv\Scripts\python.exe" (
@@ -45,9 +46,15 @@ if not exist ".venv\Scripts\python.exe" (
 )
 echo  Instalando componentes (pode levar alguns minutos)...
 ".venv\Scripts\python.exe" -m pip install --upgrade pip -q
-".venv\Scripts\python.exe" -m pip install -r requirements.txt -q
+".venv\Scripts\python.exe" -m pip install --prefer-binary -r requirements.txt -q
 if errorlevel 1 (
-    echo  [ERRO] Falha ao instalar os componentes. Verifique a internet ou o proxy da empresa.
+    echo.
+    echo  [ERRO] Falha ao instalar os componentes.
+    echo   - Se a mensagem fala em "Failed building wheel" ou "Microsoft Visual C++":
+    echo     instale o Python 3.13 em https://www.python.org/downloads/windows/
+    echo     ^(versao "Windows installer 64-bit"^), apague a pasta .venv daqui e rode de novo.
+    echo   - Se fala em "connection", "proxy" ou "SSL": a rede da empresa bloqueou o download.
+    echo  Mande um print desta tela para quem esta te ajudando.
     pause
     exit /b 1
 )
@@ -60,10 +67,10 @@ if defined OneDrive (
     set "PASTA_DADOS=%USERPROFILE%\Documents\GestaoEquipe"
 )
 if not exist "%PASTA_DADOS%" mkdir "%PASTA_DADOS%"
-if not exist ".env" (
-    > ".env" echo APP_NOME=Gestão da Equipe
-    >> ".env" echo DATABASE_URL=sqlite:///%PASTA_DADOS:\=/%/gestao.db
-)
+if exist ".env" goto env_pronto
+> ".env" echo APP_NOME=Gestão da Equipe
+>> ".env" echo DATABASE_URL=sqlite:///%PASTA_DADOS:\=/%/gestao.db
+:env_pronto
 echo  [ok] Seus dados ficarão em: %PASTA_DADOS%
 
 rem ---------- 4. Atalhos na Área de Trabalho ----------
